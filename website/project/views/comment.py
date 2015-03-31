@@ -19,6 +19,8 @@ from website.project.decorators import must_be_contributor_or_public
 from datetime import datetime
 from website.project.model import has_anonymous_link
 
+import requests
+import json
 
 def resolve_target(node, guid):
 
@@ -155,6 +157,14 @@ def add_comment(**kwargs):
         user=auth.user,
         content=content,
     )
+
+    if is_spam(comment):
+        #do something to stop comment.
+        print "comment is spam."
+        pass
+
+
+
     comment.save()
 
     context = dict(
@@ -179,6 +189,32 @@ def add_comment(**kwargs):
         'comment': serialize_comment(comment, auth)
     }, http.CREATED
 
+def is_spam(comment):
+    try:
+        content = comment.content
+
+        data = {
+            'message': content,
+            'email': comment.user.emails[0] if len(comment.user.emails) >0 else None,
+            'date': str(datetime.utcnow()),
+            'author': comment.user.fullname,
+            'project_title':comment.node.title,
+        }
+        # import pprint
+        # pprint.pprint(data)
+
+        r = requests.post('http://localhost:8000', data=json.dumps(data))
+        if r.text == "SPAM":
+            print "------------SPAM-----------\n",content,"\n--------------------------------"
+            return True
+        elif r.text=="HAM":
+            print "------------NOT SPAM-----------\n",content,"\n--------------------------------"
+        else:
+            print "ERROR WITH SPAMASSASSIN REQUEST"
+
+        return False
+    except:
+        return False
 
 def is_reply(target):
     return isinstance(target, Comment)
@@ -274,6 +310,26 @@ def update_comments_timestamp(auth, **kwargs):
         return {}
 
 
+def train_spam(comment, is_spam):
+    try:
+        data = {
+            'message': comment.content,
+            'email': comment.user.emails[0] if len(comment.user.emails) >0 else None,
+            'date': str(datetime.utcnow()),
+            'author': comment.user.fullname,
+            'project_title':comment.node.title,
+            'is_spam':is_spam
+        }
+
+        r = requests.post('http://localhost:8000/teach', data=json.dumps(data))
+        if r.text == "Learned":
+            print "------------Learned-----------\n",comment.content,"\n--------------------------------"
+            return True
+        else:
+            print "------------NOT Learned-----------\n",r.text,"\n--------------------------------"
+    except:
+        pass
+
 @must_be_logged_in
 @must_be_contributor_or_public
 def report_abuse(**kwargs):
@@ -290,6 +346,8 @@ def report_abuse(**kwargs):
 
     try:
         comment.report_abuse(user, save=True, category=category, text=text)
+
+        train_spam(comment, is_spam=True)
     except ValueError:
         raise HTTPError(http.BAD_REQUEST)
 
