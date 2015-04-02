@@ -476,6 +476,9 @@ def project_statistics(**kwargs):
 @must_be_valid_project
 @must_have_permission('admin')
 def project_before_set_public(**kwargs):
+
+
+
     node = kwargs['node'] or kwargs['project']
     prompt = node.callback('before_make_public')
     anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)

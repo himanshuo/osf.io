@@ -34,6 +34,7 @@ from website.addons.base import views as addon_views
 from website.discovery import views as discovery_views
 from website.conferences import views as conference_views
 from website.notifications import views as notification_views
+from website.spam_admin import views as spam_admin_views
 
 
 def get_globals():
@@ -379,6 +380,35 @@ def make_url_map(app):
         ),
 
     ], prefix='/api/v1')
+
+    ### spam_admin ###
+    process_rules(app, [
+
+        # Rule(
+        #     [
+        #         '/spam_admin/',
+        #     ],
+        #     'get',
+        #     project_views.comment.list_comments,
+        #     json_renderer,
+        # ),
+        Rule(
+            [
+                '/',
+                '/comments'
+
+            ],
+            'get',
+            spam_admin_views.comments,
+            OsfWebRenderer('spam_admin.mako'),
+        ),
+
+
+
+    ], prefix='/spam_admin')
+
+
+
 
     ### Forms ###
 

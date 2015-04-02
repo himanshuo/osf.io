@@ -153,6 +153,11 @@ class Comment(GuidStoredObject):
     is_deleted = fields.BooleanField(default=False)
     content = fields.StringField()
 
+    possible_spam = fields.BooleanField(default=False)
+
+
+
+
     # Dictionary field mapping user IDs to dictionaries of report details:
     # {
     #   'icpnw': {'category': 'hate', 'message': 'offensive'},
@@ -196,6 +201,12 @@ class Comment(GuidStoredObject):
             auth=auth,
             save=False,
         )
+        if save:
+            self.save()
+
+    def mark_as_possible_spam(self, auth, save=False):
+        self.possible_spam = True
+        #NOT modifing comment. Thus Also NOT changing NodeLog
         if save:
             self.save()
 

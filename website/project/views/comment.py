@@ -161,6 +161,7 @@ def add_comment(**kwargs):
     if is_spam(comment):
         #do something to stop comment.
         print "comment is spam."
+        comment.mark_as_possible_spam(auth=auth, save=True)
         pass
 
 
@@ -265,11 +266,20 @@ def edit_comment(**kwargs):
     if len(content) > settings.COMMENT_MAXLENGTH:
         raise HTTPError(http.BAD_REQUEST)
 
+
+
+
+
     comment.edit(
         content=content,
         auth=auth,
         save=True
     )
+
+    if is_spam(comment):
+        #todo: pass to comment admin.
+        print "edited comment is spam."
+        pass
 
     return serialize_comment(comment, auth)
 
