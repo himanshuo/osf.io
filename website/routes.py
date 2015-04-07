@@ -381,31 +381,38 @@ def make_url_map(app):
 
     ], prefix='/api/v1')
 
-    ### spam_admin ###
+    ### Spam_Admin ###
+
+
+    #web
     process_rules(app, [
 
-        # Rule(
-        #     [
-        #         '/spam_admin/',
-        #     ],
-        #     'get',
-        #     project_views.comment.list_comments,
-        #     json_renderer,
-        # ),
+        Rule(
+            '/comments/',
+            'get',
+            spam_admin_views.init_comments,
+            OsfWebRenderer('spam_admin.mako'),
+        ),
+    ], prefix='/spam_admin'),
+
+
+    #api
+    process_rules(app, [
         Rule(
             [
-                '/',
-                '/comments'
-
+                '/spam_admin/list_comments/',
+                '/spam_admin/list_comments/<page>/',
             ],
             'get',
-            spam_admin_views.comments,
-            OsfWebRenderer('spam_admin.mako'),
+            spam_admin_views.list_comments(),
+            json_renderer,
         ),
 
 
 
-    ], prefix='/spam_admin')
+    ], prefix='/api/v1'),
+
+
 
 
 

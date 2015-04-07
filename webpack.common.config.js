@@ -46,6 +46,7 @@ var entry = {
     'login-page': staticPath('js/pages/login-page.js'),
     'notifications-config-page': staticPath('js/pages/notifications-config-page.js'),
     'share-embed-page': staticPath('js/pages/share-embed-page.js'),
+     'spam-admin-page': staticPath('js/pages/spam-admin-page.js'),
     // Commons chunk
     'vendor': [
         // Vendor libraries

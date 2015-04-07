@@ -22,16 +22,30 @@ from website.filters import gravatar
 logger = logging.getLogger(__name__)
 from website.project.views.comment import serialize_comment
 
-def comments():
+def list_comments():
+    return {'data':1}
+    print "list commments called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     """
     make a list of comments that are marked as possibleSpam
     """
     try:
         comments = Comment.find(Q('possible_spam', 'eq', True))
         print "--------------------------------------NUM SPAM COMMENTS:::::::::::::::", comments.count()
-        return {'comments': serialize_comments(comments)}
+        return {'comments': 0}
     except:
-        return {'comments':[]}
+        return {'comments':0}
+
+
+def init_comments():
+    """
+    make a list of comments that are marked as possibleSpam
+    """
+    try:
+        num_possible_spam_comments = Comment.find(Q('possible_spam', 'eq', True)).count()
+        print "--------------------------------------NUM SPAM COMMENTS:::::::::::::::", num_possible_spam_comments.count()
+        return {'num_possible_spam_comments': []}
+    except:
+        return {'num_possible_spam_comments':[]}
 
 
 def serialize_comment(comment):
