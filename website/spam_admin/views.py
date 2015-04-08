@@ -22,16 +22,16 @@ from website.filters import gravatar
 logger = logging.getLogger(__name__)
 from website.project.views.comment import serialize_comment
 
-def list_comments():
-    return {'data':1}
+def list_comments(**kwargs):
+
     print "list commments called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     """
     make a list of comments that are marked as possibleSpam
     """
     try:
         comments = Comment.find(Q('possible_spam', 'eq', True))
-        print "--------------------------------------NUM SPAM COMMENTS:::::::::::::::", comments.count()
-        return {'comments': 0}
+
+        return {'comments': serialize_comments(comments)}
     except:
         return {'comments':0}
 
@@ -40,12 +40,13 @@ def init_comments():
     """
     make a list of comments that are marked as possibleSpam
     """
+
     try:
         num_possible_spam_comments = Comment.find(Q('possible_spam', 'eq', True)).count()
-        print "--------------------------------------NUM SPAM COMMENTS:::::::::::::::", num_possible_spam_comments.count()
-        return {'num_possible_spam_comments': []}
+
+        return {'num_possible_spam_comments': num_possible_spam_comments}
     except:
-        return {'num_possible_spam_comments':[]}
+        return {'num_possible_spam_comments':0}
 
 
 def serialize_comment(comment):
@@ -69,6 +70,16 @@ def serialize_comment(comment):
 
 def serialize_comments(comments):
     return [ serialize_comment(comment) for comment in comments]
+
+def mark_comment_as_spam(**kwargs):
+    try:
+        # comment = kwargs_to_comment(kwargs)
+        # comment.unmark_as_possible_spam()
+        # comment.delete()
+        return {'message': 'comment marked as spam'}
+    except:
+        return {'message': 'failed to mark as spam'}
+
 
 
 

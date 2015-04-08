@@ -388,7 +388,10 @@ def make_url_map(app):
     process_rules(app, [
 
         Rule(
-            '/comments/',
+            [
+                '/',
+                '/comments/',
+            ],
             'get',
             spam_admin_views.init_comments,
             OsfWebRenderer('spam_admin.mako'),

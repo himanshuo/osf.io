@@ -210,6 +210,12 @@ class Comment(GuidStoredObject):
         if save:
             self.save()
 
+    def unmark_as_possible_spam(self, auth, save=False):
+        self.possible_spam = False
+        #NOT modifing comment. Thus Also NOT changing NodeLog
+        if save:
+            self.save()
+
     def delete(self, auth, save=False):
         self.is_deleted = True
         self.node.add_log(

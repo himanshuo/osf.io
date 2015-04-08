@@ -162,7 +162,7 @@ def add_comment(**kwargs):
         #do something to stop comment.
         print "comment is spam."
         comment.mark_as_possible_spam(auth=auth, save=True)
-        pass
+
 
 
 
@@ -223,6 +223,7 @@ def is_reply(target):
 
 @must_be_contributor_or_public
 def list_comments(auth, **kwargs):
+
     node = kwargs['node'] or kwargs['project']
     anonymous = has_anonymous_link(node, auth)
     guid = request.args.get('target')
