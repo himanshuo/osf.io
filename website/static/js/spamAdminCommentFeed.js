@@ -7,18 +7,25 @@ var ko = require('knockout');
 
 var $osf = require('js/osfHelpers');
 
+
+
+
 /**
 * Log model.
 */
-var SpamAdminComment = function() {
+var SpamAdminComment = function(data) {
     var self = this;
-    self.author = ko.observable('author name');
-    self.author_url = ko.observable('www.google.com');
-    self.dateCreated = ko.observable('9/20/1995');
-    self.dateModified = ko.observable('10/2/2015');
-    self.content = ko.observable('fake content');
-    self.project = ko.observable('project title');
-    self.project_url=ko.observable('www.project.com');
+    self.author = ko.observable(data.author.name);
+    self.author_url = ko.observable(data.author.url);
+    self.dateCreated = ko.observable(data.dateCreated);
+    self.dateModified = ko.observable(data.dateModified);
+    self.content = ko.observable(data.content);
+    self.project = ko.observable(data.project);
+    self.project_url=ko.observable(data.project_url);
+
+
+
+
 };
 
 /**
@@ -28,53 +35,77 @@ var SpamAdminComment = function() {
 var SpamAdminCommentViewModel = function(spamAdminComments) {
 
     var self = this;
-    self.spamAdminComments = ko.observableArray(spamAdminComments);
+    self.spamAdminComments = ko.observableArray([]);
+
+    self.total
+
+    self.get_comments(2);
 
 
     // ...
 };
 
-////////////////
-// Public API //
-////////////////
+SpamAdminCommentViewModel.prototype.get_comments = function(amount) {
 
-var defaults = {
-    //data: []
-    //progBar: '#logProgressBar'
-};
 
-function SpamAdminCommentFeed(selector, options) {
-
-    var self = this;
-    self.selector = selector;
-    self.options = $.extend({}, defaults, options);
-    //self.$progBar = $(self.options.progBar);
-    self.spamAdminComments = self.options.data.map(function(spamAdminComment) {
-        return new SpamAdminComment();
-    });
-    $osf.applyBindings(new SpamAdminCommentViewModel(self.spamAdminComments), self.selector);
-
-};
-
-SpamAdminCommentFeed.prototype.get_comments = function() {
-    console.log('get_comments called.');
     var self=this;
-    var request = this.fetch();
-    request.done(function(response) { console.log(response); });
+
+    var request = self.fetch(amount);
+    request.done(function(response) {
+
+        var newComments = response.comments.map(function(data){
+            return new SpamAdminComment(data);
+        });
+
+
+        //it is better to extend an array at once rather then manually add multiple times because each addition
+        //forces knockout to reload. DO THAT. apply is just pushing foreach new comment. SLOW. FIX. TODO: make fast.
+        self.spamAdminComments.push.apply(self.spamAdminComments, newComments);
+
+    });
     request.fail(function(error){console.log(error);});
 
 };
 
 
-
-SpamAdminCommentFeed.prototype.fetch = function(){
+SpamAdminCommentViewModel.prototype.fetch = function(amount){
     var self=this;
-   console.log('fetch func called');
-    // Assign handlers immediately after making the request,
-    // and remember the jqxhr object for this request
-    var data = $.getJSON( "/spam_admin/list_comments");
+
+    var query_url = "/api/v1/spam_admin/list_comments/";
+    if (amount){
+        query_url += amount;
+    }
+
+
+    var data = $.getJSON(query_url);
     return data;
 };
+
+
+
+
+
+
+////////////////
+// Public API //
+////////////////
+
+
+
+function SpamAdminCommentFeed(selector, options) {
+
+    var self = this;
+    self.selector = selector;
+
+    self.init();
+
+
+
+};
+
+
+
+
 
 
 /*
@@ -85,13 +116,15 @@ ONLINE, it shows that this method is called inside the SpamAdminCommentFeed prot
 
 */
 //// Apply ViewModel bindings
-//SpamAdminCommentFeed.prototype.init = function(selector, options) {
-//
-//    var self = this;
-//    //self.$progBar.hide();
-//    console.log('spam admin comment feed prototype init called.');
-//    $osf.applyBindings(new SpamAdminCommentViewModel(self.spamAdminComments), self.selector);
-//
-//};
+SpamAdminCommentFeed.prototype.init = function() {
+
+    var self = this;
+    //self.$progBar.hide();
+
+    $osf.applyBindings(new SpamAdminCommentViewModel(self.spamAdminComments), self.selector);
+
+
+
+};
 
 module.exports = SpamAdminCommentFeed;

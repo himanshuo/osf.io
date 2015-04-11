@@ -3,7 +3,8 @@
 <%def name="content()">
 
 
-<div id="himanshu">
+<div id="himanshu" class="scripted">
+
     <nav class="navbar navbar-default">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
@@ -11,7 +12,7 @@
       <a class="navbar-brand" href="#">Comments <span class="badge">${num_possible_spam_comments}</span></a>
     </div>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
+
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
         <li class="active"><a href="/spam_admin/comments">Comments <span class="sr-only">(current)</span></a></li>

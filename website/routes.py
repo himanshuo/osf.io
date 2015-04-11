@@ -400,20 +400,22 @@ def make_url_map(app):
 
 
     #api
+    #NOTE: you CANNOT use your own custom function spam_admin_view.list_comments because website.views.list_comments already exists.
+    #I think this is good enough to be considered a bug. AHHHHHHH
     process_rules(app, [
         Rule(
             [
-                '/spam_admin/list_comments/',
-                '/spam_admin/list_comments/<page>/',
+                '/list_comments/',
+                '/list_comments/<amount>/',
             ],
             'get',
-            spam_admin_views.list_comments(),
+            spam_admin_views.list_comment_page,
             json_renderer,
         ),
 
 
 
-    ], prefix='/api/v1'),
+    ], prefix='/api/v1/spam_admin'),
 
 
 

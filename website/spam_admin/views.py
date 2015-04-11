@@ -22,16 +22,21 @@ from website.filters import gravatar
 logger = logging.getLogger(__name__)
 from website.project.views.comment import serialize_comment
 
-def list_comments(**kwargs):
-
-    print "list commments called!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+def list_comment_page(**kwargs):
     """
     make a list of comments that are marked as possibleSpam
     """
     try:
+        amount = 30
+        if 'amount' in kwargs:
+
+            amount *=0
+            amount += int(kwargs['amount'])
         comments = Comment.find(Q('possible_spam', 'eq', True))
 
-        return {'comments': serialize_comments(comments)}
+        return { 'comments': serialize_comments(comments),
+                 'total': comments.count()
+                 }
     except:
         return {'comments':0}
 
