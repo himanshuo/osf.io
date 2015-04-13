@@ -3,17 +3,17 @@
 <%def name="content()">
 
 
-<div id="himanshu" class="scripted">
+<div id="spam-admin" class="scripted">
 
     <nav class="navbar navbar-default">
   <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Comments <span class="badge">${num_possible_spam_comments}</span></a>
+      <a class="navbar-brand" href="#">Comments <span class="badge" data-bind="text: total"></span></a>
     </div>
 
 
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+    <div class="collapse navbar-collapse" >
       <ul class="nav navbar-nav">
         <li class="active"><a href="/spam_admin/comments">Comments <span class="sr-only">(current)</span></a></li>
         <li ><a href="/spam_admin/projects">Projects</a></li>
@@ -34,8 +34,8 @@
         <div class="search-result well">
 
             <div class=" pull-right"  role="group" aria-label="...">
-              <button type="button" class="btn btn-success">Ham</button>
-              <button type="button" class="btn btn-danger">Spam</button>
+              <button type="button" class="btn btn-success" data-bind="click: function(data, event) { $parent.markHam(data, event) }" >Ham</button>
+              <button type="button" class="btn btn-danger" data-bind="click: function(data, event) { $parent.markSpam(data, event) }">Spam</button>
 
             </div>
             <h4><a data-bind="attr: { href: comment.project_url }" ><span data-bind="text: comment.project"></span></a></h4>

@@ -412,6 +412,19 @@ def make_url_map(app):
             spam_admin_views.list_comment_page,
             json_renderer,
         ),
+        Rule(
+                '/mark_comment_as_spam/',
+            'post',
+            spam_admin_views.mark_comment_as_spam,
+            json_renderer,
+        ),
+        Rule(
+                '/mark_comment_as_ham/',
+            'post',
+            spam_admin_views.mark_comment_as_ham,
+            json_renderer,
+        ),
+
 
 
 
