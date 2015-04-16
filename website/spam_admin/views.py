@@ -19,7 +19,9 @@ from website.models import Guid, Comment
 import pprint
 from framework.auth.utils import privacy_info_handle
 from website.filters import gravatar
+from flask import request
 logger = logging.getLogger(__name__)
+from website.project.views.comment import train_spam
 #from website.project.views.comment import kwargs_to_comment
 
 
@@ -76,19 +78,6 @@ def serialize_comment(comment):
         'cid':comment._id
     }
 
-# def kwargs_to_comment(kwargs, owner=False):
-#
-#     comment = Comment.load(kwargs.get('cid'))
-#     if comment is None:
-#         raise HTTPError(http.BAD_REQUEST)
-#
-#     if owner:
-#         auth = kwargs['auth']
-#         if auth.user != comment.user:
-#             raise HTTPError(http.FORBIDDEN)
-#
-#     return comment
-
 def serialize_comments(comments, amount):
     count = 0
     out = []
@@ -99,29 +88,38 @@ def serialize_comments(comments, amount):
             break
     return out
 
-    return [ serialize_comment(comment) for comment in comments]
 
 def mark_comment_as_spam(**kwargs):
     try:
-        print "mark comment as spam CALLED!!!!!!!!!"
-        #import pdb;pdb.set_trace()
-        #comment = kwargs_to_comment(kwargs)
-        #print comment
+        cid = request.json.get('cid')
 
-        # comment.unmark_as_possible_spam()
-        # comment.delete()
+        comment = Comment.load(cid)
+
+        if comment is None:
+            raise HTTPError(http.BAD_REQUEST)
+
+        comment.unmark_as_possible_spam(auth=None, save=True)
+        # train_spam(comment=comment,is_spam=True )  #COMMENTED FOR TESTING PURPOSES.
+        comment.delete(auth=None)
         return {'message': 'comment marked as spam'}
     except:
-        #raise HTTPError(http.BAD_REQUEST)
-        return {'message': 'failed to mark as spam'}
+        raise HTTPError(http.BAD_REQUEST)
+        #return {'message': 'failed to mark as spam'}
 
 
 def mark_comment_as_ham(**kwargs):
     try:
-        # comment = kwargs_to_comment(kwargs)
-        # comment.unmark_as_possible_spam()
-        # comment.delete()
-        return {'message': 'comment marked as spam'}
+        cid = request.json.get('cid')
+
+        comment = Comment.load(cid)
+
+        if comment is None:
+            raise HTTPError(http.BAD_REQUEST)
+
+        comment.unmark_as_possible_spam(auth=None, save=True)
+        # train_spam(comment=comment,is_spam=False ) #COMMENTED FOR TESTING PURPOSES.
+
+        return {'message': 'comment marked as ham'}
     except:
-        #raise HTTPError(http.BAD_REQUEST)
-        return {'message': 'failed to mark as spam'}
+        raise HTTPError(http.BAD_REQUEST)
+        #return {'message': 'failed to mark as spam'}

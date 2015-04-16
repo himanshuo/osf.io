@@ -401,7 +401,7 @@ def make_url_map(app):
 
     #api
     #NOTE: you CANNOT use your own custom function spam_admin_view.list_comments because website.views.list_comments already exists.
-    #I think this is good enough to be considered a bug. AHHHHHHH
+    #I think this is annoying enough to be considered a bug. AHHHHHHH
     process_rules(app, [
         Rule(
             [

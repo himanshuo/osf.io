@@ -26,6 +26,9 @@ var SpamAdminComment = function(data) {
     self.project_url=ko.observable(data.project_url);
 
 
+    self.removed =false;
+
+
 
 
 };
@@ -33,32 +36,27 @@ var SpamAdminComment = function(data) {
 
 SpamAdminComment.prototype.markSpam = function(){
     var self=this;
- $osf.postJSON(
-            "api/v1/spam_admin/mark_comment_as_spam/",
+    var worked = $osf.postJSON(
+            "/api/v1/spam_admin/mark_comment_as_spam/",
             {
                 "cid":self.cid
             }
-        ).done(function(response) {
-            return true;
-        }).fail(function(response) {
-            return false;
-        });
+        )
+    return worked;
 }
 
 
 SpamAdminComment.prototype.markHam = function(){
     var self=this;
- $osf.postJSON(
+
+    var worked = $osf.postJSON(
             "/api/v1/spam_admin/mark_comment_as_ham/",
             {
                 "cid":self.cid
             }
-        ).done(function(response) {
-            console.log(response);
-            return true;
-        }).fail(function(response) {
-            return false;
-        });
+        )
+
+    return worked;
 }
 
 
@@ -71,7 +69,7 @@ var SpamAdminCommentViewModel = function(spamAdminComments) {
     var self = this;
     self.spamAdminComments = ko.observableArray([]);
 
-    self.total = ko.observable(3);
+    self.total = ko.observable(0);
 
     self.fill_comment_list();
 
@@ -87,31 +85,39 @@ SpamAdminCommentViewModel.prototype.markHam = function(spamAdminComment){
 
 
 
-    if (spamAdminComment.markHam()){
-        self.spamAdminComments.remove(spamAdminComment);
-        self.spamAdminComments.remove(spamAdminComment);
+    var markHamRequest = spamAdminComment.markHam();
+    markHamRequest.done(function(response) {
 
-
+        self.spamAdminComments.remove(spamAdminComment);
         $osf.growl('Comment Marked as Ham',"", 'success');
-    }
+        self.fill_comment_list();
+    });
+    markHamRequest.fail(function(response) {
+        console.log('inside markHam done but failed');
+    });
+
+
 
 };
+
 SpamAdminCommentViewModel.prototype.markSpam = function(spamAdminComment){
     var self = this;
 
+    var markHamRequest = spamAdminComment.markHam();
+    markHamRequest.done(function(response) {
 
-    if (spamAdminComment.markSpam()){
         self.spamAdminComments.remove(spamAdminComment);
-         self.spamAdminComments.remove(spamAdminComment);
-
         $osf.growl('Comment Marked as Spam',"", 'success');
-
-    }
+        self.fill_comment_list();
+    });
+    markHamRequest.fail(function(response) {
+        console.log('inside markSpam done but failed');
+    });
 
 
 };
 //Array.prototype.remove = function(elementToDelete){
-//    var self=this;
+//    var sels;
 //    var i = self.indexOf(elementToDelete)
 //    if(i>-1){
 //        self.splice(i, 1);
