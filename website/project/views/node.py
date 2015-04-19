@@ -475,6 +475,99 @@ def project_statistics(**kwargs):
 ###############################################################################
 # Make Private/Public
 ###############################################################################
+def _get_node_data_for_spam_check(node):
+    from website.addons.wiki.model import NodeWikiPage
+    from website.views import serialize_log
+
+    logs = []
+    for log in reversed(node.logs):
+        if log:
+            logs.append(serialize_log(log))
+
+    #node.contributors
+
+    content = {
+        'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',node))],
+        'logs':logs,
+        'tags': [tag.content for tag in node.tags]
+    }
+    data = {
+        'message':content,
+        'project_title': node.title,
+        'category': node.category_display,
+        'description': node.description or '',
+        'url': node.url,
+        'absolute_url': node.absolute_url,
+        'date_created': iso8601format(node.date_created),
+        'date_modified': iso8601format(node.logs[-1].date) if node.logs else '',
+        'date': iso8601format(node.logs[-1].date) if node.logs else '',
+        'tags': [tag.content for tag in node.tags],
+        'is_registration': node.is_registration,
+        'registered_from_url': node.registered_from.url if node.is_registration else '',
+        'registered_date': iso8601format(node.registered_date) if node.is_registration else '',
+        'registration_count': len(node.node__registrations),
+        'is_fork': node.is_fork,
+        'forked_from_id': node.forked_from._primary_key if node.is_fork else '',
+        'forked_from_display_absolute_url': node.forked_from.display_absolute_url if node.is_fork else '',
+        'forked_date': iso8601format(node.forked_date) if node.is_fork else '',
+        'fork_count': len(node.node__forked.find(Q('is_deleted', 'eq', False))),
+        'templated_count': len(node.templated_list),
+        'watched_count': len(node.watchconfig__watched),
+        'private_links': [x.to_json() for x in node.private_links_active],
+        'points': len(node.get_points(deleted=False, folders=False)),
+        'comment_level': node.comment_level,
+        'has_comments': bool(getattr(node, 'commented', [])),
+        'has_children': bool(getattr(node, 'commented', False)),
+        'author': node.creator.fullname,
+        'email':node.creator.emails,
+        # 'contributors': [contributor.name in node.contributors,
+
+
+    }
+    # data = {
+    #         'message': content,
+    #         'email': content.user.emails[0] if len(content.user.emails) >0 else None,
+    #         'date': str(datetime.utcnow()),
+    #         'author': comment.user.fullname,
+    #         'project_title':comment.node.title,
+    #     }
+    return data
+
+
+def _project_is_spam(node):
+    from pprint import pprint
+    import json
+    import requests
+    import datetime
+
+
+    try:
+
+        data = _get_node_data_for_spam_check(node)
+        import pdb;pdb.set_trace()
+
+        pprint(json.dumps(data))
+
+        r = requests.post('http://localhost:8000', data=json.dumps(data))
+
+        if r.text == "SPAM":
+            print "------------SPAM-----------\n"
+            return True
+        elif r.text=="HAM":
+            print "------------NOT SPAM-----------\n"
+        else:
+            print "ERROR WITH SPAMASSASSIN REQUEST"
+
+        return False
+    except:
+        return False
+
+
+
+
+
+
+
 
 
 @must_be_valid_project
@@ -482,8 +575,9 @@ def project_statistics(**kwargs):
 def project_before_set_public(**kwargs):
 
 
-
     node = kwargs['node'] or kwargs['project']
+
+    himanshu_stuff = _project_is_spam(node)
     prompt = node.callback('before_make_public')
     anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
     if anonymous_link_warning:

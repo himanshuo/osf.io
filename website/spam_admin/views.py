@@ -99,7 +99,7 @@ def mark_comment_as_spam(**kwargs):
             raise HTTPError(http.BAD_REQUEST)
 
         comment.unmark_as_possible_spam(auth=None, save=True)
-        train_spam(comment=comment,is_spam=True )  
+        train_spam(comment=comment,is_spam=True )
         comment.delete(auth=None)
         return {'message': 'comment marked as spam'}
     except:
