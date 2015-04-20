@@ -26,10 +26,6 @@ var SpamAdminComment = function(data) {
     self.project_url=ko.observable(data.project_url);
 
 
-    self.removed =false;
-
-
-
 
 };
 

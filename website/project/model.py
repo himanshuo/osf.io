@@ -206,13 +206,13 @@ class Comment(GuidStoredObject):
         if save:
             self.save()
 
-    def mark_as_possible_spam(self, auth, save=False):
+    def mark_as_possible_spam(self,auth,save=False):
         self.possible_spam = True
         #NOT modifing comment. Thus Also NOT changing NodeLog
         if save:
             self.save()
 
-    def unmark_as_possible_spam(self, auth, save=False):
+    def unmark_as_possible_spam(self, auth,save=False):
         self.possible_spam = False
         #NOT modifing comment. Thus Also NOT changing NodeLog
         if save:
@@ -579,6 +579,11 @@ class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
     is_dashboard = fields.BooleanField(default=False, index=True)
     is_folder = fields.BooleanField(default=False, index=True)
 
+
+    #spam handle
+    possible_spam = fields.BooleanField(default=False)
+
+
     # Expanded: Dictionary field mapping user IDs to expand state of this node:
     # {
     #   'icpnw': True,
@@ -860,6 +865,16 @@ class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
         for key in self.permissions.keys():
             if key not in self.contributors:
                 self.permissions.pop(key)
+
+    def mark_as_possible_spam(self, save=False):
+        self.possible_spam = True
+        if save:
+            self.save()
+
+    def unmark_as_possible_spam(self,save=False):
+        self.possible_spam = False
+        if save:
+            self.save()
 
     @property
     def visible_contributors(self):

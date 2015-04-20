@@ -388,14 +388,22 @@ def make_url_map(app):
     process_rules(app, [
 
         Rule(
+            '/comments/',
+            'get',
+            {},
+            OsfWebRenderer('spam_admin_comments.mako'),
+        ),
+        Rule(
             [
                 '/',
-                '/comments/',
+                '/projects/'
             ],
             'get',
-            spam_admin_views.init_comments,
-            OsfWebRenderer('spam_admin.mako'),
+            {},
+            OsfWebRenderer('spam_admin_projects.mako'),
         ),
+
+
     ], prefix='/spam_admin'),
 
 
@@ -424,9 +432,15 @@ def make_url_map(app):
             spam_admin_views.mark_comment_as_ham,
             json_renderer,
         ),
-
-
-
+        Rule(
+            [
+                '/list_projects/',
+                '/list_projects/<amount>/',
+            ],
+            'get',
+            spam_admin_views.list_projects_page,
+            json_renderer,
+        ),
 
     ], prefix='/api/v1/spam_admin'),
 

@@ -475,7 +475,8 @@ def project_statistics(**kwargs):
 ###############################################################################
 # Make Private/Public
 ###############################################################################
-def _get_node_data_for_spam_check(node):
+
+def _format_spam_node_data(node):
     from website.addons.wiki.model import NodeWikiPage
     from website.views import serialize_log
 
@@ -524,29 +525,17 @@ def _get_node_data_for_spam_check(node):
 
 
     }
-    # data = {
-    #         'message': content,
-    #         'email': content.user.emails[0] if len(content.user.emails) >0 else None,
-    #         'date': str(datetime.utcnow()),
-    #         'author': comment.user.fullname,
-    #         'project_title':comment.node.title,
-    #     }
     return data
 
 
 def _project_is_spam(node):
-    from pprint import pprint
+
     import json
     import requests
-    import datetime
-
 
     try:
 
-        data = _get_node_data_for_spam_check(node)
-        import pdb;pdb.set_trace()
-
-        pprint(json.dumps(data))
+        data = _format_spam_node_data(node)
 
         r = requests.post('http://localhost:8000', data=json.dumps(data))
 
@@ -576,13 +565,17 @@ def project_before_set_public(**kwargs):
 
 
     node = kwargs['node'] or kwargs['project']
-
-    himanshu_stuff = _project_is_spam(node)
     prompt = node.callback('before_make_public')
-    anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
-    if anonymous_link_warning:
-        prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
-                      'contributors after a project or component is made public.')
+    if _project_is_spam(node):
+        node.mark_as_possible_spam()
+        prompt.append('This project has spam elements. COS will investigate these elements,'
+                      ' until which time this project cannot be made public.')
+    else:
+
+        anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
+        if anonymous_link_warning:
+            prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
+                          'contributors after a project or component is made public.')
 
     return {
         'prompts': prompt

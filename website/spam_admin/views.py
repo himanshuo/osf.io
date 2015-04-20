@@ -22,7 +22,11 @@ from website.filters import gravatar
 from flask import request
 logger = logging.getLogger(__name__)
 from website.project.views.comment import train_spam
+from website.project.views.node import _format_spam_node_data
 #from website.project.views.comment import kwargs_to_comment
+from framework.utils import iso8601format
+from website.addons.wiki.model import NodeWikiPage
+
 
 
 def list_comment_page(**kwargs):
@@ -46,17 +50,17 @@ def list_comment_page(**kwargs):
         }
 
 
-def init_comments():
-    """
-    make a list of comments that are marked as possibleSpam
-    """
-
-    try:
-        num_possible_spam_comments = Comment.find(Q('possible_spam', 'eq', True)).count()
-
-        return {'num_possible_spam_comments': num_possible_spam_comments}
-    except:
-        return {'num_possible_spam_comments':0}
+# def init_comments():
+#     """
+#     make a list of comments that are marked as possibleSpam
+#     """
+#
+#     try:
+#         num_possible_spam_comments = Comment.find(Q('possible_spam', 'eq', True)).count()
+#
+#         return {'num_possible_spam_comments': num_possible_spam_comments}
+#     except:
+#         return {'num_possible_spam_comments':0}
 
 
 def serialize_comment(comment):
@@ -83,6 +87,16 @@ def serialize_comments(comments, amount):
     out = []
     for comment in comments:
         out.append(serialize_comment(comment))
+        count +=1
+        if count >= amount:
+            break
+    return out
+
+def serialize_projects(projects, amount):
+    count = 0
+    out = []
+    for project in projects:
+        out.append(serialize_project(project))
         count +=1
         if count >= amount:
             break
@@ -123,3 +137,46 @@ def mark_comment_as_ham(**kwargs):
     except:
         raise HTTPError(http.BAD_REQUEST)
         #return {'message': 'failed to mark as spam'}
+
+
+def list_projects_page(**kwargs):
+    """
+    make a list of projects that are marked as possibleSpam
+    """
+    try:
+        amount = 10
+        if 'amount' in kwargs:
+            amount *=0
+            amount += int(kwargs['amount'])
+
+        projects = Node.find(
+                    Q('possible_spam', 'eq', True) &
+                    Q('category', 'eq', "project")
+        )
+
+        return { 'projects': serialize_projects(projects, amount),
+                 'total': projects.count()
+            }
+    except:
+        return {'comments':0,
+                'total': 0
+        }
+
+
+def serialize_project(project):
+
+    return {
+        'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',project))],
+        'tags': [tag.content for tag in project.tags],
+        'title': project.title,
+        'description': project.description or '',
+        'url': project.url,
+        'date_created': iso8601format(project.date_created),
+        'date_modified': iso8601format(project.logs[-1].date) if project.logs else '',
+        'author':{
+            'email':project.creator.emails,
+            'name': project.creator.fullname,
+        }
+
+    }
+
