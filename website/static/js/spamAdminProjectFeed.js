@@ -8,7 +8,6 @@ var ko = require('knockout');
 var $osf = require('js/osfHelpers');
 
 
-
 /**
 * Log model.
 */
@@ -127,6 +126,7 @@ SpamAdminProjectViewModel.prototype.markSpam = function(spamAdminProject){
 
 SpamAdminProjectViewModel.prototype.fill_project_list = function(){
   var self = this;
+    console.log(1);
   var amount = 30-self.spamAdminProjects.length
   if(amount>0){
       self.get_projects(amount);
@@ -137,10 +137,10 @@ SpamAdminProjectViewModel.prototype.get_projects = function(amount) {
 
 
     var self=this;
-
+ console.log(2);
     var request = self.fetch(amount);
     request.done(function(response) {
-
+         console.log(3);
         var newProjects = response.projects.map(function(data){
             return new SpamAdminProject(data);
         });
@@ -148,7 +148,7 @@ SpamAdminProjectViewModel.prototype.get_projects = function(amount) {
 
         //it is better to extend an array at once rather then manually add multiple times because each addition
         //forces knockout to reload. DO THAT. apply is just pushing foreach new project. SLOW. FIX. TODO: make fast.
-        self.spamAdminProjects.push.apply(self.spamAdminProjects, newprojects);
+        self.spamAdminProjects.push.apply(self.spamAdminProjects, newProjects);
 
 
         self.total(response.total);

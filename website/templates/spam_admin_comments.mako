@@ -71,5 +71,5 @@
 
 
 <%def name="javascript_bottom()">
-<script src=${"/static/public/js/spam-admin-page.js" | webpack_asset}></script>
+<script src=${"/static/public/js/spam-admin-comment-page.js" | webpack_asset}></script>
 </%def>

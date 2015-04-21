@@ -25,7 +25,7 @@ from website.project.views.comment import train_spam
 from website.project.views.node import _format_spam_node_data
 #from website.project.views.comment import kwargs_to_comment
 from framework.utils import iso8601format
-from website.addons.wiki.model import NodeWikiPage
+
 
 
 
@@ -143,6 +143,7 @@ def list_projects_page(**kwargs):
     """
     make a list of projects that are marked as possibleSpam
     """
+
     try:
         amount = 10
         if 'amount' in kwargs:
@@ -158,13 +159,13 @@ def list_projects_page(**kwargs):
                  'total': projects.count()
             }
     except:
-        return {'comments':0,
+        return {'projects':0,
                 'total': 0
         }
 
 
 def serialize_project(project):
-
+    from website.addons.wiki.model import NodeWikiPage
     return {
         'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',project))],
         'tags': [tag.content for tag in project.tags],

@@ -490,8 +490,10 @@ def _format_spam_node_data(node):
     content = {
         'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',node))],
         'logs':logs,
-        'tags': [tag.content for tag in node.tags]
+        'tags': [tag._id for tag in node.tags] ###???? why?????
     }
+
+
     data = {
         'message':content,
         'project_title': node.title,
@@ -502,7 +504,7 @@ def _format_spam_node_data(node):
         'date_created': iso8601format(node.date_created),
         'date_modified': iso8601format(node.logs[-1].date) if node.logs else '',
         'date': iso8601format(node.logs[-1].date) if node.logs else '',
-        'tags': [tag.content for tag in node.tags],
+        'tags': [tag._id for tag in node.tags],
         'is_registration': node.is_registration,
         'registered_from_url': node.registered_from.url if node.is_registration else '',
         'registered_date': iso8601format(node.registered_date) if node.is_registration else '',
@@ -525,6 +527,7 @@ def _format_spam_node_data(node):
 
 
     }
+
     return data
 
 
@@ -537,12 +540,13 @@ def _project_is_spam(node):
 
         data = _format_spam_node_data(node)
 
-        r = requests.post('http://localhost:8000', data=json.dumps(data))
 
-        if r.text == "SPAM":
+        res = requests.post('http://localhost:8000', data=json.dumps(data))
+
+        if res.text == "SPAM":
             print "------------SPAM-----------\n"
             return True
-        elif r.text=="HAM":
+        elif res.text=="HAM":
             print "------------NOT SPAM-----------\n"
         else:
             print "ERROR WITH SPAMASSASSIN REQUEST"
@@ -565,11 +569,17 @@ def project_before_set_public(**kwargs):
 
 
     node = kwargs['node'] or kwargs['project']
+
     prompt = node.callback('before_make_public')
+
     if _project_is_spam(node):
-        node.mark_as_possible_spam()
-        prompt.append('This project has spam elements. COS will investigate these elements,'
-                      ' until which time this project cannot be made public.')
+        node.mark_as_possible_spam(save=True)
+        spam_message = 'This project has spam elements. COS will investigate these elements,'\
+                      ' until which time this project cannot be made public.'
+        prompt.append(spam_message)
+
+
+
     else:
 
         anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)

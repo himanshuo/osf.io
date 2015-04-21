@@ -31,30 +31,30 @@
 </nav>
 
 
-        <div  data-bind="foreach: {data: spamAdminProjects, as: 'project'}">
-            <div class="search-result well">
-                <div class=" pull-right"  role="group" aria-label="...">
-                    <button type="button" class="btn btn-success" data-bind="click: function(data, event) { $parent.markHam(data, event) }" >Ham</button>
-                    <button type="button" class="btn btn-danger" data-bind="click: function(data, event) { $parent.markSpam(data, event) }">Spam</button>
-                </div>
-                <h4>
-                    <a data-bind="attr: { href: project.url }" >
-                        <span data-bind="text: project.title"></span>
-                    </a>
-                </h4>
-                <p>
-                    <span data-bind="text: project.wiki"></span>
-                </p>
-                <p>
-                    <strong>Author:</strong>
-                    <span data-bind="text: project.creator"></span>
-                    <span class="pull-right">
-                        <strong>Last Edited:</strong>
-                        <span data-bind="text: project.dateModified"></span>
-                    </span>
-                </p>
-            </div>
-        </div>
+##        <div  data-bind="foreach: {data: spamAdminProjects, as: 'project'}">
+##            <div class="search-result well">
+##                <div class=" pull-right"  role="group" aria-label="...">
+##                    <button type="button" class="btn btn-success" data-bind="click: function(data, event) { $parent.markHam(data, event) }" >Ham</button>
+##                    <button type="button" class="btn btn-danger" data-bind="click: function(data, event) { $parent.markSpam(data, event) }">Spam</button>
+##                </div>
+##                <h4>
+##                    <a data-bind="attr: { href: project.url }" >
+##                        <span data-bind="text: project.title"></span>
+##                    </a>
+##                </h4>
+##                <p>
+##                    <span data-bind="text: project.wiki"></span>
+##                </p>
+##                <p>
+##                    <strong>Author:</strong>
+##                    <span data-bind="text: project.creator"></span>
+##                    <span class="pull-right">
+##                        <strong>Last Edited:</strong>
+##                        <span data-bind="text: project.dateModified"></span>
+##                    </span>
+##                </p>
+##            </div>
+##        </div>
 
 
 
@@ -68,5 +68,5 @@
 
 
 <%def name="javascript_bottom()">
-<script src=${"/static/public/js/spam-admin-page.js" | webpack_asset}></script>
+<script src=${"/static/public/js/spam-admin-project-page.js" | webpack_asset}></script>
 </%def>
