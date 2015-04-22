@@ -13,8 +13,8 @@ var $osf = require('js/osfHelpers');
 */
 var SpamAdminProject = function(data) {
     var self = this;
-    console.log(data);
-    //self.pid=ko.observable(data.pid);
+
+    self.pid=data.pid;
     self.author = ko.observable(data.author.name);
     self.emails = ko.observableArray(data.author.emails);
     self.dateCreated = ko.observable(data.date_created);
@@ -97,7 +97,7 @@ SpamAdminProjectViewModel.prototype.markHam = function(spamAdminProject){
 SpamAdminProjectViewModel.prototype.markSpam = function(spamAdminProject){
     var self = this;
 
-    var markHamRequest = spamAdminProject.markHam();
+    var markHamRequest = spamAdminProject.markSpam();
     markHamRequest.done(function(response) {
 
         self.spamAdminProjects.remove(spamAdminProject);

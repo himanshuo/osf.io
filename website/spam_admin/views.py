@@ -185,7 +185,45 @@ def serialize_project(project):
         'author':{
             'email':project.creator.emails,
             'name': project.creator.fullname,
-        }
+        },
+         'pid':project._id
 
     }
 
+
+def mark_project_as_spam(**kwargs):
+
+    try:
+
+        pid = request.json.get('pid')
+
+        project = Node.load(pid)
+
+        if project is None:
+            raise HTTPError(http.BAD_REQUEST)
+
+        project.unmark_as_possible_spam( save=True)
+        # train_spam(comment=comment,is_spam=True )
+        #TODO: delete node. Need high level auth for this.
+        return {'message': 'project marked as spam'}
+    except:
+        raise HTTPError(http.BAD_REQUEST)
+        #return {'message': 'failed to mark as spam'}
+
+
+def mark_project_as_ham(**kwargs):
+    try:
+        pid = request.json.get('pid')
+
+        project = Node.load(pid)
+
+        if project is None:
+            raise HTTPError(http.BAD_REQUEST)
+
+        project.unmark_as_possible_spam( save=True)
+        # train_spam(comment=comment,is_spam=False )
+
+        return {'message': 'project marked as ham'}
+    except:
+        raise HTTPError(http.BAD_REQUEST)
+        #return {'message': 'failed to mark as spam'}

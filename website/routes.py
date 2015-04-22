@@ -441,6 +441,18 @@ def make_url_map(app):
             spam_admin_views.list_projects_page,
             json_renderer,
         ),
+        Rule(
+                '/mark_project_as_spam/',
+            'post',
+            spam_admin_views.mark_project_as_spam,
+            json_renderer,
+        ),
+        Rule(
+                '/mark_project_as_ham/',
+            'post',
+            spam_admin_views.mark_project_as_ham,
+            json_renderer,
+        ),
 
     ], prefix='/api/v1/spam_admin'),
 
