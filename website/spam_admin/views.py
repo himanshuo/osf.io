@@ -163,17 +163,25 @@ def list_projects_page(**kwargs):
                 'total': 0
         }
 
+def human_readable_date(datetimeobj):
+    return datetimeobj.strftime("%b %d, %Y")
 
 def serialize_project(project):
     from website.addons.wiki.model import NodeWikiPage
+
     return {
-        'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',project))],
-        'tags': [tag.content for tag in project.tags],
+        'wikis':[ { 'content': wiki.content if len(wiki.content) < 1000 else wiki.content[:1000]+" ...",
+                    'page_name': wiki.page_name,
+                    'date': human_readable_date(wiki.date),
+                    'url': wiki.url
+                  }
+                  for wiki in NodeWikiPage.find(Q('node','eq',project)) ],
+        'tags': [tag._id for tag in project.tags],
         'title': project.title,
         'description': project.description or '',
         'url': project.url,
-        'date_created': iso8601format(project.date_created),
-        'date_modified': iso8601format(project.logs[-1].date) if project.logs else '',
+        # 'date_created': iso8601format(project.date_created),
+        'date_modified': human_readable_date(project.logs[-1].date) if project.logs else '',
         'author':{
             'email':project.creator.emails,
             'name': project.creator.fullname,

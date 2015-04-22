@@ -13,12 +13,12 @@ var $osf = require('js/osfHelpers');
 */
 var SpamAdminProject = function(data) {
     var self = this;
-
+    console.log(data);
     //self.pid=ko.observable(data.pid);
     self.author = ko.observable(data.author.name);
     self.emails = ko.observableArray(data.author.emails);
-    self.dateCreated = ko.observable(data.dateCreated);
-    self.dateModified = ko.observable(data.dateModified);
+    self.dateCreated = ko.observable(data.date_created);
+    self.dateModified = ko.observable(data.date_modified);
     self.description = ko.observable(data.description);
     self.title = ko.observable(data.title);
     self.url=ko.observable(data.url);
@@ -71,14 +71,11 @@ var SpamAdminProjectViewModel = function(spamAdminProjects) {
 
 
 
-    // ...
 };
 
 
 SpamAdminProjectViewModel.prototype.markHam = function(spamAdminProject){
     var self = this;
-
-
 
 
     var markHamRequest = spamAdminProject.markHam();
@@ -87,6 +84,7 @@ SpamAdminProjectViewModel.prototype.markHam = function(spamAdminProject){
         self.spamAdminProjects.remove(spamAdminProject);
         $osf.growl('Project Marked as Ham',"", 'success');
         self.fill_project_list();
+
     });
     markHamRequest.fail(function(response) {
         console.log('inside markHam done but failed');
@@ -126,7 +124,6 @@ SpamAdminProjectViewModel.prototype.markSpam = function(spamAdminProject){
 
 SpamAdminProjectViewModel.prototype.fill_project_list = function(){
   var self = this;
-    console.log(1);
   var amount = 30-self.spamAdminProjects.length
   if(amount>0){
       self.get_projects(amount);
@@ -137,11 +134,12 @@ SpamAdminProjectViewModel.prototype.get_projects = function(amount) {
 
 
     var self=this;
- console.log(2);
+
     var request = self.fetch(amount);
     request.done(function(response) {
-         console.log(3);
+
         var newProjects = response.projects.map(function(data){
+
             return new SpamAdminProject(data);
         });
 

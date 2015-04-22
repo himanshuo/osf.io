@@ -571,14 +571,11 @@ def project_before_set_public(**kwargs):
     node = kwargs['node'] or kwargs['project']
 
     prompt = node.callback('before_make_public')
+    is_spam = False
 
     if _project_is_spam(node):
         node.mark_as_possible_spam(save=True)
-        spam_message = 'This project has spam elements. COS will investigate these elements,'\
-                      ' until which time this project cannot be made public.'
-        prompt.append(spam_message)
-
-
+        is_spam = True
 
     else:
 
@@ -588,7 +585,8 @@ def project_before_set_public(**kwargs):
                           'contributors after a project or component is made public.')
 
     return {
-        'prompts': prompt
+        'prompts': prompt,
+        'is_spam':is_spam
     }
 
 

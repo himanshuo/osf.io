@@ -867,6 +867,7 @@ class Node(GuidStoredObject, AddonModelMixin, IdentifierMixin):
                 self.permissions.pop(key)
 
     def mark_as_possible_spam(self, save=False):
+
         self.possible_spam = True
         if save:
             self.save()

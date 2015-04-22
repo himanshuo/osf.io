@@ -31,30 +31,46 @@
 </nav>
 
 
-##        <div  data-bind="foreach: {data: spamAdminProjects, as: 'project'}">
-##            <div class="search-result well">
-##                <div class=" pull-right"  role="group" aria-label="...">
-##                    <button type="button" class="btn btn-success" data-bind="click: function(data, event) { $parent.markHam(data, event) }" >Ham</button>
-##                    <button type="button" class="btn btn-danger" data-bind="click: function(data, event) { $parent.markSpam(data, event) }">Spam</button>
-##                </div>
-##                <h4>
-##                    <a data-bind="attr: { href: project.url }" >
-##                        <span data-bind="text: project.title"></span>
-##                    </a>
-##                </h4>
-##                <p>
-##                    <span data-bind="text: project.wiki"></span>
-##                </p>
-##                <p>
-##                    <strong>Author:</strong>
-##                    <span data-bind="text: project.creator"></span>
-##                    <span class="pull-right">
-##                        <strong>Last Edited:</strong>
-##                        <span data-bind="text: project.dateModified"></span>
-##                    </span>
-##                </p>
-##            </div>
-##        </div>
+        <div  data-bind="foreach: {data: spamAdminProjects, as: 'project'}">
+            <div class="search-result well">
+                <div class=" pull-right"  role="group" aria-label="...">
+                    <button type="button" class="btn btn-success" data-bind="click: function(data, event) { $parent.markHam(data, event) }" >Ham</button>
+                    <button type="button" class="btn btn-danger" data-bind="click: function(data, event) { $parent.markSpam(data, event) }">Spam</button>
+                </div>
+                <h4>
+                    <a data-bind="attr: { href: project.url }" >
+                        <span data-bind="text: project.title"></span>
+                    </a>
+                </h4>
+                <p>
+                    <span data-bind="text: project.description"></span>
+                </p>
+
+                <div data-bind="foreach: {data: project.wikis, as: 'wiki'}">
+                    <div class="panel panel-default">
+                      <div class="panel-heading">
+                          <a data-bind="attr: {href: wiki.url}"><span data-bind="text: wiki.page_name"></span></a>
+                          <span data-bind="text: wiki.date" class="pull-right"></span>
+                      </div>
+                      <div class="panel-body" >
+                        <span data-bind="text: wiki.content"></span>
+                      </div>
+                    </div>
+                </div>
+
+
+
+
+                <p>
+                    <strong>Author:</strong>
+                    <span data-bind="text: project.author"></span>
+                    <span class="pull-right">
+                        <strong>Last Edited:</strong>
+                        <span data-bind="text: project.dateModified"></span>
+                    </span>
+                </p>
+            </div>
+        </div>
 
 
 

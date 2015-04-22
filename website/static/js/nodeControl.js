@@ -34,7 +34,9 @@ var MESSAGES = {
 
     makeComponentPrivateWarning: 'Making a component private will prevent users from viewing it on this site, ' +
                         'but will have no impact on external sites, including Google\'s cache. ' +
-                        'Would you like to continue?'
+                        'Would you like to continue?',
+    possibleSpamWarning: 'This project has spam elements. COS will investigate these elements,'+
+                        ' until which time this project cannot be made public.'
 };
 
 // TODO(sloria): Fix this external dependency on nodeApiUrl
@@ -79,18 +81,44 @@ function setPermissions(permissions, nodeType) {
         });
     };
 
+    var spamModel = function (message) {
+        bootbox.alert({
+            title: 'Warning',
+            message: message,
+            callback: function(result) {
+                if (result) {
+                    console.log(result);
+//                    osfHelpers.postJSON(
+//                        URLS[urlKey],
+//                        {permissions: permissions}
+//                    ).done(function() {
+//                        window.location.reload();
+//                    }).fail(
+//                        osfHelpers.handleJSONError
+//                    );
+                }
+            }
+        });
+    };
+
     if (permissions === PUBLIC) {
         $.getJSON(
             window.nodeApiUrl + 'permissions/beforepublic/',
             {},
             function(data) {
                 var alerts = '';
-                var addonMessages = data.prompts;
+                if (data.is_spam){
+                    spamModel(MESSAGES['possibleSpamWarning']);
+                }
+                else{
+                    var addonMessages = data.prompts;
                     for(var i=0; i<addonMessages.length; i++) {
                         alerts += '<div class="alert alert-warning">' +
                                     addonMessages[i] + '</div>';
                     }
-                confirmModal(alerts + message);
+                    confirmModal(alerts + message);
+                }
+
             }
         );
     } else {
