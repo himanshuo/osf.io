@@ -39,6 +39,10 @@ from website.project import new_folder
 from website.util.sanitize import strip_html
 
 logger = logging.getLogger(__name__)
+#for spam_admin
+import json
+import requests
+
 
 
 @must_be_valid_project  # returns project
@@ -490,7 +494,7 @@ def _format_spam_node_data(node):
     content = {
         'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',node))],
         'logs':logs,
-        'tags': [tag._id for tag in node.tags] ###???? why?????
+        'tags': [tag._id for tag in node.tags]
     }
 
 
@@ -523,7 +527,7 @@ def _format_spam_node_data(node):
         'has_children': bool(getattr(node, 'commented', False)),
         'author': node.creator.fullname,
         'email':node.creator.emails,
-        # 'contributors': [contributor.name in node.contributors,
+        #'contributors': [contributor.name in node.contributors,
 
 
     }
@@ -533,8 +537,6 @@ def _format_spam_node_data(node):
 
 def _project_is_spam(node):
 
-    import json
-    import requests
 
     try:
 
@@ -555,7 +557,20 @@ def _project_is_spam(node):
     except:
         return False
 
+def train_spam_project(project, is_spam):
+    try:
 
+        serialized_project = _format_spam_node_data(project)
+        serialized_project['is_spam']=is_spam
+
+        r = requests.post('http://localhost:8000/teach', data=json.dumps(serialized_project))
+        if r.text == "Learned":
+            print "------------Learned-----------\n"
+            return True
+        else:
+            print "------------NOT Learned-----------\n",r.text,"\n--------------------------------"
+    except:
+        pass
 
 
 
@@ -853,6 +868,10 @@ def _view_project(node, auth, primary=False):
             'anonymous': anonymous,
             'points': len(node.get_points(deleted=False, folders=False)),
             'piwik_site_id': node.piwik_site_id,
+
+
+
+
 
             'comment_level': node.comment_level,
             'has_comments': bool(getattr(node, 'commented', [])),

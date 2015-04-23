@@ -288,9 +288,7 @@ def edit_comment(**kwargs):
     )
 
     if is_spam(comment):
-        #todo: pass to comment admin.
-        print "edited comment is spam."
-        pass
+        comment.mark_as_possible_spam(auth=auth, save=True)
 
     return serialize_comment(comment, auth)
 

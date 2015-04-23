@@ -25,7 +25,7 @@ from website.project.views.comment import train_spam
 from website.project.views.node import _format_spam_node_data
 #from website.project.views.comment import kwargs_to_comment
 from framework.utils import iso8601format
-
+from website.project.views.node import train_spam_project
 
 
 
@@ -203,8 +203,10 @@ def mark_project_as_spam(**kwargs):
             raise HTTPError(http.BAD_REQUEST)
 
         project.unmark_as_possible_spam( save=True)
-        # train_spam(comment=comment,is_spam=True )
+        train_spam_project(project,is_spam=True )
+
         #TODO: delete node. Need high level auth for this.
+
         return {'message': 'project marked as spam'}
     except:
         raise HTTPError(http.BAD_REQUEST)
@@ -220,10 +222,11 @@ def mark_project_as_ham(**kwargs):
         if project is None:
             raise HTTPError(http.BAD_REQUEST)
 
-        project.unmark_as_possible_spam( save=True)
-        # train_spam(comment=comment,is_spam=False )
+        project.unmark_as_possible_spam( save=True )
+        train_spam_project(project,is_spam=False )
 
         return {'message': 'project marked as ham'}
     except:
         raise HTTPError(http.BAD_REQUEST)
         #return {'message': 'failed to mark as spam'}
+

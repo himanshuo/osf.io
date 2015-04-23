@@ -69,22 +69,16 @@ var SpamAdminCommentViewModel = function(spamAdminComments) {
 
     self.fill_comment_list();
 
-
-
-    // ...
 };
 
 
 SpamAdminCommentViewModel.prototype.markHam = function(spamAdminComment){
     var self = this;
 
-
-
-
     var markHamRequest = spamAdminComment.markHam();
     markHamRequest.done(function(response) {
 
-        self.spamAdminComments.remove(spamAdminComment);
+        //self.spamAdminComments.remove(spamAdminComment);
         $osf.growl('Comment Marked as Ham',"", 'success');
         self.fill_comment_list();
     });
@@ -102,9 +96,11 @@ SpamAdminCommentViewModel.prototype.markSpam = function(spamAdminComment){
     var markHamRequest = spamAdminComment.markHam();
     markHamRequest.done(function(response) {
 
+
         self.spamAdminComments.remove(spamAdminComment);
         $osf.growl('Comment Marked as Spam',"", 'success');
         self.fill_comment_list();
+
     });
     markHamRequest.fail(function(response) {
         console.log('inside markSpam done but failed');
@@ -126,10 +122,12 @@ SpamAdminCommentViewModel.prototype.markSpam = function(spamAdminComment){
 
 SpamAdminCommentViewModel.prototype.fill_comment_list = function(){
   var self = this;
-  var amount = 90-self.spamAdminComments.length
-  if(amount>0){
-      self.get_comments(amount);
-  }
+  self.get_comments(90);
+//  var amount = 90-self.spamAdminComments.length;
+//  if(amount>0){
+//      self.get_comments(amount);
+//  }
+
 };
 
 SpamAdminCommentViewModel.prototype.get_comments = function(amount) {
@@ -145,6 +143,7 @@ SpamAdminCommentViewModel.prototype.get_comments = function(amount) {
         });
 
 
+        self.spamAdminComments.removeAll();
         //it is better to extend an array at once rather then manually add multiple times because each addition
         //forces knockout to reload. DO THAT. apply is just pushing foreach new comment. SLOW. FIX. TODO: make fast.
         self.spamAdminComments.push.apply(self.spamAdminComments, newComments);

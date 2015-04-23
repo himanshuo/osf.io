@@ -43,7 +43,7 @@
                     </a>
                 </h4>
                 <p>
-                    <span data-bind="text: project.description"></span>
+                    <span class="small" data-bind="text: project.description"></span>
                 </p>
 
                 <div data-bind="foreach: {data: project.wikis, as: 'wiki'}">
