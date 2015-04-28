@@ -26,8 +26,22 @@
                             <li><a href="#" data-toggle="tooltip" title="Parent project is private" data-placement="bottom" style="cursor: default"> <i class="fa fa-level-down fa-rotate-180 text-muted"></i>  </a></li>
                         % endif
                     % endif
-                        <li><a href="${node['url']}"  class="project-title"> ${node['title'] | n}  </a></li>
-                        <li><a href="${node['url']}files/">Files</a></li>
+                        <li>
+                            <a href="${node['url']}"  class="project-title">
+                                ${node['title'] | n}
+                                % if user['unread_comments']['node'] > 0:
+                                    <span class="badge">${user['unread_comments']['node']}</span>
+                                % endif
+                            </a>
+                        </li>
+                        <li>
+                            <a href="${node['url']}files/">
+                                Files
+                                % if user['unread_comments']['files'] > 0:
+                                    <span class="badge">${user['unread_comments']['files']}</span>
+                                % endif
+                            </a>
+                        </li>
                         <!-- Add-on tabs -->
                         % for addon in addons_enabled:
                             % if addons[addon]['has_page']:
@@ -37,10 +51,20 @@
                                             <img src="${addons[addon]['icon']}" class="addon-logo"/>
                                         % endif
                                         ${addons[addon]['full_name']}
+                                        % if addons[addon]['full_name']=='Wiki' and user['unread_comments']['wiki'] > 0:
+                                            <span class="badge">${user['unread_comments']['wiki']}</span>
+                                        % endif
                                     </a>
                                 </li>
                             % endif
                         % endfor
+                        <li>
+                            <a href="${node['url']}discussions/">Discussions
+                                % if user['unread_comments']['total'] > 0:
+                                    <span class="badge">${user['unread_comments']['total']}</span>
+                                % endif
+                            </a>
+                        </li>
                         % if node['is_public'] or user['is_contributor']:
                             <li><a href="${node['url']}statistics/">Statistics</a></li>
                         % endif
@@ -87,6 +111,5 @@
 % if disk_saving_mode:
     <div class="alert alert-info"><strong>NOTICE: </strong>Forks, registrations, and uploads will be temporarily disabled while the OSF undergoes a hardware upgrade. These features will return shortly. Thank you for your patience.</div>
 % endif
-
 
 </div>

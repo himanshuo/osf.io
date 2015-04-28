@@ -23,6 +23,7 @@ from website import settings
 from website.project import decorators
 from website.addons.base import exceptions
 from website.models import User, Node, NodeLog
+from website.util import rubeus
 from website.project.utils import serialize_node
 from website.project.decorators import must_be_valid_project, must_be_contributor_or_public
 
@@ -328,8 +329,12 @@ def addon_view_file(auth, node, node_addon, file_guid, extras):
         'extra': json.dumps(getattr(file_guid, 'extra', {})),
         #NOTE: get_or_start_render must be called first to populate name
         'file_name': getattr(file_guid, 'name', os.path.split(file_guid.waterbutler_path)[1]),
+        'file_id': file_guid._id,
+        # Note: Comments are allowed for all addons that support waterbutler
+        'allow_comment': True
     })
 
+    ret.update(rubeus.collect_addon_assets(node))
     return ret
 
 

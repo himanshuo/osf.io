@@ -82,6 +82,9 @@ class UserFactory(ModularOdmFactory):
     is_claimed = True
     api_keys = []
     date_confirmed = datetime.datetime(2014, 2, 21)
+    merged_by = None
+    email_verifications = {}
+    verification_key = None
 
     @post_generation
     def set_names(self, create, extracted):
@@ -358,6 +361,10 @@ class CommentFactory(ModularOdmFactory):
             target=target,
             *args, **kwargs
         )
+        if isinstance(target, cls):
+            instance.root_target = target.root_target
+        else:
+            instance.root_target = target
         return instance
 
     @classmethod
@@ -371,6 +378,10 @@ class CommentFactory(ModularOdmFactory):
             target=target,
             *args, **kwargs
         )
+        if isinstance(target, cls):
+            instance.root_target = target.root_target
+        else:
+            instance.root_target = target
         instance.save()
         return instance
 

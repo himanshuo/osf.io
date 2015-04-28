@@ -71,9 +71,15 @@
                             <i class="fa fa-eye"></i>
                             <span data-bind="text: watchButtonDisplay" id="watchCount"></span>
                         </a>
-                        <a rel="tooltip" title="Duplicate" data-placement="bottom"
-                            class="btn btn-default${ '' if is_project else ' disabled'}" href="#"
-                            data-toggle="modal" data-target="#duplicateModal">
+                        <a
+                        % if is_project:
+                            class="btn btn-default"
+                            data-bind="tooltip: {title: 'Duplicate', placement: 'bottom'}"
+                            data-target="#duplicateModal" data-toggle="modal"
+                        % else:
+                            class="btn btn-default disabled"
+                        % endif
+                            href="#">
                             <span class="glyphicon glyphicon-share"></span>&nbsp; ${ node['templated_count'] + node['fork_count'] + node['points'] }
                         </a>
                     </div>
@@ -122,8 +128,16 @@
                     ARK <a href="#" data-bind="text: ark, attr.href: arkUrl"></a>
                 </span>
                 <span data-bind="if: canCreateIdentifiers()" class="scripted">
+                  <!-- ko if: idCreationInProgress() -->
+                    <br />
+                      <i class="fa fa-spinner fa-lg fa-spin"></i>
+                        <span class="text-info">Creating DOI and ARK. Please wait...</span>
+                  <!-- /ko -->
+
+                  <!-- ko ifnot: idCreationInProgress() -->
                   <br />
-                    <a data-bind="click: askCreateIdentifiers">Create DOI / ARK</a>
+                  <a data-bind="click: askCreateIdentifiers, visible: !idCreationInProgress()">Create DOI / ARK</a>
+                  <!-- /ko -->
                 </span>
                 % if parent_node['id']:
                     <br />Category: <span class="node-category">${node['category']}</span>
@@ -146,7 +160,7 @@
 % endif
 
 % if user['can_comment'] or node['has_comments']:
-    <%include file="include/comment_template.mako"/>
+    <%include file="include/comment_pane_template.mako"/>
 % endif
 
 <div class="row">
@@ -160,6 +174,7 @@
         }'></div>
         %endif
 
+        <!-- Files -->
         <div class="addon-widget-container">
             <div class="addon-widget-header clearfix">
                 <h4>Files</h4>
@@ -172,6 +187,25 @@
                     <div class="fangorn-loading">
                         <i class="fa fa-spinner fangorn-spin"></i> <p class="m-t-sm fg-load-message"> Loading files...  </p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discussions -->
+        <div id="comments-widget-container" class="addon-widget-container">
+            <div class="addon-widget-header clearfix">
+                <h4>Recent discussions</h4>
+                <div class="pull-right">
+                    <a href="${node['url']}discussions/" class="btn"> <i class="fa fa-external-link"></i> </a>
+                </div>
+            </div>
+            <div class="addon-widget-body">
+                <div data-bind="if: commented">
+                    <div data-bind="template: {name: 'commentTemplate', foreach: recentComments}"></div>
+                </div>
+                <div data-bind="ifnot: commented">There are no comments in this ${node['node_type']} yet.</div>
+                <div>
+                    <span>Open the <a class="open-comment-pane">comment pane</a> on the right to make a comment.</span>
                 </div>
             </div>
         </div>

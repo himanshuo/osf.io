@@ -35,12 +35,28 @@ $('body').on('nodeLoad', function(event, data) {
 });
 
 // Initialize comment pane w/ it's viewmodel
-var $comments = $('#comments');
+var $comments = $('.comments');
 if ($comments.length) {
-    var userName = window.contextVars.currentUser.name;
-    var canComment = window.contextVars.currentUser.canComment;
-    var hasChildren = window.contextVars.node.hasChildren;
-    Comment.init('#commentPane', userName, canComment, hasChildren);
+
+    var options = {
+        hostName: window.contextVars.node.id,
+        userName: window.contextVars.currentUser.name,
+        canComment: window.contextVars.currentUser.canComment,
+        hasChildren: window.contextVars.node.hasChildren
+    };
+
+    var commentPaneOptions = $.extend({}, options, {
+        hostPage: 'node',
+        mode: 'pane'
+    });
+
+    var commentWidgetOptions = $.extend({}, options, {
+        hostPage: 'total',
+        mode: 'widget'
+    });
+
+    Comment.init('.comment-pane', commentPaneOptions);
+    Comment.init('#comments-widget-container', commentWidgetOptions);
 }
 
 // Initialize CitationWidget if user isn't viewing through an anonymized VOL
@@ -177,4 +193,10 @@ $(document).ready(function() {
     if (window.contextVars.node.isRegistration && window.contextVars.node.tags.length === 0) {
         $('div.tags').remove();
     }
+
+    // Comment pane trigger
+    $(".open-comment-pane").click(function(){
+        $(".cp-handle").click();
+    });
+
 });

@@ -11,6 +11,7 @@ require('ace-mode-markdown');
 require('ace-ext-language_tools');
 require('addons/wiki/static/ace-markdown-snippets.js');
 
+var Comment = require('js/comment');
 var $osf = require('js/osfHelpers');
 
 
@@ -119,7 +120,7 @@ $(document).ready(function () {
     var panelExpand = $('.panel-expand');
     $('.panel-collapse').on('click', function () {
         var el = $(this).closest('.panel-toggle');
-        el.children('.wiki-panel.hidden-xs').addClass('hidden');
+        el.children('.osf-panel.hidden-xs').addClass('hidden');
         panelToggle.removeClass('col-sm-3').addClass('col-sm-1');
         panelExpand.removeClass('col-sm-9').addClass('col-sm-11');
         el.children('.panel-collapsed').removeClass('hidden');
@@ -127,10 +128,10 @@ $(document).ready(function () {
 
         bodyElement.trigger('toggleMenu', [false]);
     });
-    $('.panel-collapsed .wiki-panel-header').on('click', function () {
+    $('.panel-collapsed .osf-panel-header').on('click', function () {
         var el = $(this).parent();
         var toggle = el.closest('.panel-toggle');
-        toggle.children('.wiki-panel').removeClass('hidden');
+        toggle.children('.osf-panel').removeClass('hidden');
         el.addClass('hidden');
         panelToggle.removeClass('col-sm-1').addClass('col-sm-3');
         panelExpand.removeClass('col-sm-11').addClass('col-sm-9');
@@ -141,3 +142,16 @@ $(document).ready(function () {
     // Tooltip
     $('[data-toggle="tooltip"]').tooltip()
 });
+
+var $comments = $('.comments');
+if ($comments.length) {
+    var options = {
+        hostPage: 'wiki',
+        hostName: window.contextVars.wiki.name,
+        mode: 'pane',
+        userName: window.contextVars.currentUser.name,
+        canComment: window.contextVars.currentUser.canComment,
+        hasChildren: window.contextVars.node.hasChildren
+    };
+    Comment.init('.comment-pane', options);
+}
