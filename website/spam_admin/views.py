@@ -1,34 +1,29 @@
 # -*- coding: utf-8 -*-
 
-import json
-import httplib
+
 import logging
 import http
 from modularodm import Q
-from modularodm.exceptions import ModularOdmException
 
 from framework.exceptions import HTTPError
 
-from website import settings
+
 from website.models import Node
-from website.util import web_url_for
 
-from website.conferences import utils
 
-from website.models import Guid, Comment
-import pprint
-from framework.auth.utils import privacy_info_handle
-from website.filters import gravatar
+
+from website.models import Comment
 from flask import request
 logger = logging.getLogger(__name__)
 from website.project.views.comment import train_spam
-from website.project.views.node import _format_spam_node_data
-#from website.project.views.comment import kwargs_to_comment
-from framework.utils import iso8601format
+
 from website.project.views.node import train_spam_project
+from framework.auth.decorators import must_be_logged_in
+from .decorators import must_be_spam_admin
+from .utils import serialize_comments,serialize_projects
 
-
-
+@must_be_logged_in
+@must_be_spam_admin
 def list_comment_page(**kwargs):
     """
     make a list of comments that are marked as possibleSpam
@@ -39,7 +34,10 @@ def list_comment_page(**kwargs):
             amount *=0
             amount += int(kwargs['amount'])
 
-        comments = Comment.find(Q('possible_spam', 'eq', True))
+        comments = Comment.find(
+            Q('spam_status', 'eq', Comment.POSSIBLE_SPAM)
+        )
+
 
         return { 'comments': serialize_comments(comments, amount),
                  'total': comments.count()
@@ -49,60 +47,31 @@ def list_comment_page(**kwargs):
                 'total': 0
         }
 
+@must_be_logged_in
+@must_be_spam_admin
+def init_spam_admin_page(**kwargs):
+    """
+    make sure that user is spam_admin
+    """
 
-# def init_comments():
-#     """
-#     make a list of comments that are marked as possibleSpam
-#     """
-#
-#     try:
-#         num_possible_spam_comments = Comment.find(Q('possible_spam', 'eq', True)).count()
-#
-#         return {'num_possible_spam_comments': num_possible_spam_comments}
-#     except:
-#         return {'num_possible_spam_comments':0}
+    return {}
 
 
-def serialize_comment(comment):
+@must_be_logged_in
+@must_be_spam_admin
+def init_spam_admin_comments_page(**kwargs):
+    """
+    make sure that user is spam_admin
+    """
 
-    anonymous = False
-    return {
-        'author': {
-            'url': privacy_info_handle(comment.user.url, anonymous),
-            'name': privacy_info_handle(
-                comment.user.fullname, anonymous, name=True
-            ),
-        },
-        'dateCreated': comment.date_created.isoformat(),
-        'dateModified': comment.date_modified.isoformat(),
-        'content': comment.content,
-        'hasChildren': bool(getattr(comment, 'commented', [])),
-        'project': comment.node.title,
-        'project_url':comment.node.url,
-        'cid':comment._id
-    }
-
-def serialize_comments(comments, amount):
-    count = 0
-    out = []
-    for comment in comments:
-        out.append(serialize_comment(comment))
-        count +=1
-        if count >= amount:
-            break
-    return out
-
-def serialize_projects(projects, amount):
-    count = 0
-    out = []
-    for project in projects:
-        out.append(serialize_project(project))
-        count +=1
-        if count >= amount:
-            break
-    return out
+    return {}
 
 
+
+
+
+@must_be_logged_in
+@must_be_spam_admin
 def mark_comment_as_spam(**kwargs):
     try:
         cid = request.json.get('cid')
@@ -112,15 +81,21 @@ def mark_comment_as_spam(**kwargs):
         if comment is None:
             raise HTTPError(http.BAD_REQUEST)
 
-        comment.unmark_as_possible_spam(auth=None, save=True)
-        train_spam(comment=comment,is_spam=True )
-        comment.delete(auth=None)
+
+
+        comment.confirm_spam(save=True)
+
+        train_spam(comment=comment, is_spam=True)
+
+        comment.delete(auth=None, save=True)
+
         return {'message': 'comment marked as spam'}
     except:
         raise HTTPError(http.BAD_REQUEST)
-        #return {'message': 'failed to mark as spam'}
 
 
+@must_be_logged_in
+@must_be_spam_admin
 def mark_comment_as_ham(**kwargs):
     try:
         cid = request.json.get('cid')
@@ -130,15 +105,17 @@ def mark_comment_as_ham(**kwargs):
         if comment is None:
             raise HTTPError(http.BAD_REQUEST)
 
-        comment.unmark_as_possible_spam(auth=None, save=True)
+        comment.comment.confirm_ham(save=True)
         train_spam(comment=comment,is_spam=False )
+
 
         return {'message': 'comment marked as ham'}
     except:
         raise HTTPError(http.BAD_REQUEST)
-        #return {'message': 'failed to mark as spam'}
 
 
+@must_be_logged_in
+@must_be_spam_admin
 def list_projects_page(**kwargs):
     """
     make a list of projects that are marked as possibleSpam
@@ -163,34 +140,10 @@ def list_projects_page(**kwargs):
                 'total': 0
         }
 
-def human_readable_date(datetimeobj):
-    return datetimeobj.strftime("%b %d, %Y")
-
-def serialize_project(project):
-    from website.addons.wiki.model import NodeWikiPage
-
-    return {
-        'wikis':[ { 'content': wiki.content if len(wiki.content) < 1000 else wiki.content[:1000]+" ...",
-                    'page_name': wiki.page_name,
-                    'date': human_readable_date(wiki.date),
-                    'url': wiki.url
-                  }
-                  for wiki in NodeWikiPage.find(Q('node','eq',project)) ],
-        'tags': [tag._id for tag in project.tags],
-        'title': project.title,
-        'description': project.description or '',
-        'url': project.url,
-        # 'date_created': iso8601format(project.date_created),
-        'date_modified': human_readable_date(project.logs[-1].date) if project.logs else '',
-        'author':{
-            'email':project.creator.emails,
-            'name': project.creator.fullname,
-        },
-         'pid':project._id
-
-    }
 
 
+@must_be_logged_in
+@must_be_spam_admin
 def mark_project_as_spam(**kwargs):
 
     try:
@@ -210,9 +163,10 @@ def mark_project_as_spam(**kwargs):
         return {'message': 'project marked as spam'}
     except:
         raise HTTPError(http.BAD_REQUEST)
-        #return {'message': 'failed to mark as spam'}
 
 
+@must_be_logged_in
+@must_be_spam_admin
 def mark_project_as_ham(**kwargs):
     try:
         pid = request.json.get('pid')
@@ -228,5 +182,5 @@ def mark_project_as_ham(**kwargs):
         return {'message': 'project marked as ham'}
     except:
         raise HTTPError(http.BAD_REQUEST)
-        #return {'message': 'failed to mark as spam'}
+
 

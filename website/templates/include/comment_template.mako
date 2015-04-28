@@ -71,6 +71,22 @@
                 </div>
             </div>
 
+
+            <div data-bind="if: markedSpam">
+                <div>
+                    <span data-bind="if: hasChildren">
+                        <i data-bind="css: toggleIcon, click: toggle"></i>
+                    </span>
+                    This Comment has been marked as Spam.
+                </div>
+                <a data-bind="click: startUnreportAbuse">Not abuse</a>
+                <div data-bind="if: unreporting">
+                    <a class="btn btn-primary btn-sm" data-bind="click: submitUnreportAbuse">Submit</a>
+                    <a class="btn btn-default btn-sm" data-bind="click: cancelUnreportAbuse">Cancel</a>
+                </div>
+            </div>
+
+
             <div data-bind="if: isVisible">
 
                 <div class="comment-info">

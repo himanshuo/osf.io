@@ -36,8 +36,10 @@ def collect_discussion(target, users=None):
 
     users = users or collections.defaultdict(list)
     for comment in getattr(target, 'commented', []):
+
         if not comment.is_deleted:
-            users[comment.user].append(comment)
+            if comment.spam_status==Comment.HAM or comment.spam_status==Comment.UNKNOWN:
+                users[comment.user].append(comment)
         collect_discussion(comment, users=users)
     return users
 
@@ -102,15 +104,20 @@ def serialize_comment(comment, auth, anonymous=False):
         'modified': comment.modified,
         'isDeleted': comment.is_deleted,
         'isAbuse': auth.user and auth.user._id in comment.reports,
+        'markedSpam': comment.spam_status == Comment.SPAM or comment.spam_status == Comment.POSSIBLE_SPAM
     }
 
 
 def serialize_comments(record, auth, anonymous=False):
 
-    return [
-        serialize_comment(comment, auth, anonymous)
-        for comment in getattr(record, 'commented', [])
-    ]
+    serialized_comments = []
+    for comment in getattr(record, 'commented', []):
+        if comment.spam_status == Comment.UNKNOWN or comment.spam_status == Comment.HAM:
+            serialized_comments.append(serialize_comment(comment, auth, anonymous))
+    return serialized_comments
+
+
+
 
 
 def kwargs_to_comment(kwargs, owner=False):
@@ -131,6 +138,7 @@ def kwargs_to_comment(kwargs, owner=False):
 @must_be_contributor_or_public
 def add_comment(**kwargs):
 
+
     auth = kwargs['auth']
     node = kwargs['node'] or kwargs['project']
 
@@ -145,6 +153,7 @@ def add_comment(**kwargs):
 
     content = request.json.get('content').strip()
     content = sanitize(content)
+
     if not content:
         raise HTTPError(http.BAD_REQUEST)
     if len(content) > settings.COMMENT_MAXLENGTH:
@@ -158,10 +167,14 @@ def add_comment(**kwargs):
         content=content,
     )
 
+
     if is_spam(comment):
-        #do something to stop comment.
-        print "comment is spam."
+
+        #let the comment still show up for the user. DON'T let it show up for other users though.
         comment.mark_as_possible_spam(auth=auth, save=True)
+
+
+
 
 
 
@@ -202,26 +215,25 @@ def add_comment(**kwargs):
 
 def is_spam(comment):
     try:
+
+        if settings.SPAM_ASSASSIN == False:
+            return False
+
+
         content = comment.content
 
         data = {
-            'message': content,
+            'message': comment.content,
             'email': comment.user.emails[0] if len(comment.user.emails) >0 else None,
             'date': str(datetime.utcnow()),
             'author': comment.user.fullname,
             'project_title':comment.node.title,
         }
-        # import pprint
-        # pprint.pprint(data)
+
 
         r = requests.post('http://localhost:8000', data=json.dumps(data))
         if r.text == "SPAM":
-            print "------------SPAM-----------\n",content,"\n--------------------------------"
             return True
-        elif r.text=="HAM":
-            print "------------NOT SPAM-----------\n",content,"\n--------------------------------"
-        else:
-            print "ERROR WITH SPAMASSASSIN REQUEST"
 
         return False
     except:
@@ -256,10 +268,14 @@ def n_unread_comments(node, user):
     """Return the number of unread comments on a node for a user."""
     default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
     view_timestamp = user.comments_viewed_timestamp.get(node._id, default_timestamp)
-    return Comment.find(Q('node', 'eq', node) &
+    return Comment.find(
+                        Q('node', 'eq', node) &
                         Q('user', 'ne', user) &
                         Q('date_created', 'gt', view_timestamp) &
-                        Q('date_modified', 'gt', view_timestamp)).count()
+                        Q('date_modified', 'gt', view_timestamp) &
+                        (Q('spam_status','eq',Comment.UNKNOWN) | Q('spam_status', 'eq', Comment.HAM))
+
+                        ).count()
 
 
 @must_be_logged_in
@@ -288,7 +304,9 @@ def edit_comment(**kwargs):
     )
 
     if is_spam(comment):
+
         comment.mark_as_possible_spam(auth=auth, save=True)
+
 
     return serialize_comment(comment, auth)
 
@@ -342,10 +360,7 @@ def train_spam(comment, is_spam):
 
         r = requests.post('http://localhost:8000/teach', data=json.dumps(data))
         if r.text == "Learned":
-            print "------------Learned-----------\n",comment.content,"\n--------------------------------"
             return True
-        else:
-            print "------------NOT Learned-----------\n",r.text,"\n--------------------------------"
     except:
         pass
 
@@ -366,7 +381,9 @@ def report_abuse(**kwargs):
     try:
         comment.report_abuse(user, save=True, category=category, text=text)
 
-        train_spam(comment, is_spam=True)
+
+
+
     except ValueError:
         raise HTTPError(http.BAD_REQUEST)
 
@@ -384,6 +401,8 @@ def unreport_abuse(**kwargs):
 
     try:
         comment.unreport_abuse(user, save=True)
+
+
     except ValueError:
         raise HTTPError(http.BAD_REQUEST)
 

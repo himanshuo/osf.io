@@ -155,7 +155,24 @@ class Comment(GuidStoredObject):
     is_deleted = fields.BooleanField(default=False)
     content = fields.StringField()
 
-    possible_spam = fields.BooleanField(default=False)
+
+    #possible_spam = fields.BooleanField(default=False)
+    spam_flagged_count = fields.IntegerField(default=0)
+
+    #spam_status can be in 4 states:
+    #   0 = unknown (could be spam or ham)
+    #   1 = possibly spam
+    #   2 = confidently ham
+    #   3 = confidently spam
+    UNKNOWN =0
+    POSSIBLE_SPAM = 1
+    HAM = 2
+    SPAM = 3
+    spam_status = fields.IntegerField(default=UNKNOWN)
+
+
+
+
 
 
 
@@ -207,14 +224,26 @@ class Comment(GuidStoredObject):
             self.save()
 
     def mark_as_possible_spam(self,auth,save=False):
-        self.possible_spam = True
+        if self.spam_status == self.UNKNOWN:
+            self.spam_status = self.POSSIBLE_SPAM
         #NOT modifing comment. Thus Also NOT changing NodeLog
         if save:
             self.save()
 
     def unmark_as_possible_spam(self, auth,save=False):
-        self.possible_spam = False
+        if self.spam_status == self.POSSIBLE_SPAM:
+            self.spam_status = self.UNKNOWN
         #NOT modifing comment. Thus Also NOT changing NodeLog
+        if save:
+            self.save()
+
+    def confirm_spam(self,save=False):
+        self.spam_status = self.SPAM
+        if save:
+            self.save()
+
+    def confirm_ham(self,save=False):
+        self.spam_status = self.HAM
         if save:
             self.save()
 
@@ -262,6 +291,14 @@ class Comment(GuidStoredObject):
         if user == self.user:
             raise ValueError
         self.reports[user._id] = kwargs
+
+
+        self.spam_flagged_count = self.spam_flagged_count + 1
+
+        if self.spam_flagged_count > 0:
+            self.mark_as_possible_spam(auth=None)
+
+
         if save:
             self.save()
 
@@ -274,6 +311,11 @@ class Comment(GuidStoredObject):
         """
         try:
             self.reports.pop(user._id)
+
+            self.spam_flagged_count = self.spam_flagged_count + 1
+
+            if self.spam_flagged_count <= 0:
+                self.unmark_as_possible_spam(auth=None)
         except KeyError:
             raise ValueError('User has not reported comment as abuse')
 

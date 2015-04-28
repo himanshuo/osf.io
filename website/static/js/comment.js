@@ -165,6 +165,7 @@ BaseComment.prototype.submitReply = function() {
     if (self.submittingReply()) {
         return;
     }
+
     self.submittingReply(true);
     osfHelpers.postJSON(
         nodeApiUrl + 'comment/',

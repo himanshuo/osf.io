@@ -390,7 +390,7 @@ def make_url_map(app):
         Rule(
             '/comments/',
             'get',
-            {},
+            spam_admin_views.init_spam_admin_comments_page,
             OsfWebRenderer('spam_admin_comments.mako'),
         ),
         Rule(
@@ -399,7 +399,7 @@ def make_url_map(app):
                 '/projects/'
             ],
             'get',
-            {},
+            spam_admin_views.init_spam_admin_page,
             OsfWebRenderer('spam_admin_projects.mako'),
         ),
 

@@ -93,7 +93,7 @@ SpamAdminCommentViewModel.prototype.markHam = function(spamAdminComment){
 SpamAdminCommentViewModel.prototype.markSpam = function(spamAdminComment){
     var self = this;
 
-    var markHamRequest = spamAdminComment.markHam();
+    var markHamRequest = spamAdminComment.markSpam();
     markHamRequest.done(function(response) {
 
 
