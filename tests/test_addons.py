@@ -642,6 +642,11 @@ class TestLegacyViews(OsfTestCase):
         self.path = 'mercury.png'
         self.user = AuthUserFactory()
         self.project = ProjectFactory(creator=self.user)
+        self.node_addon = self.project.get_addon('osfstorage')
+        file_record = self.node_addon.root_node.append_file(self.path)
+        self.expected_path = file_record._id
+        self.node_addon.save()
+        file_record.save()
 
     def test_view_file_redirect(self):
         url = '/{0}/osffiles/{1}/'.format(self.project._id, self.path)
@@ -650,7 +655,7 @@ class TestLegacyViews(OsfTestCase):
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
             action='view',
-            path=self.path,
+            path=self.expected_path,
             provider='osfstorage',
         )
         assert_urls_equal(res.location, expected_url)
@@ -661,7 +666,7 @@ class TestLegacyViews(OsfTestCase):
         assert_equal(res.status_code, 301)
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
-            path=self.path,
+            path=self.expected_path,
             action='download',
             provider='osfstorage',
         )
@@ -677,7 +682,7 @@ class TestLegacyViews(OsfTestCase):
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
             version=3,
-            path=self.path,
+            path=self.expected_path,
             action='download',
             provider='osfstorage',
         )
@@ -689,7 +694,7 @@ class TestLegacyViews(OsfTestCase):
         assert_equal(res.status_code, 301)
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
-            path=self.path,
+            path=self.expected_path,
             action='download',
             provider='osfstorage',
         )
@@ -705,7 +710,7 @@ class TestLegacyViews(OsfTestCase):
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
             version=3,
-            path=self.path,
+            path=self.expected_path,
             action='download',
             provider='osfstorage',
         )
@@ -721,7 +726,7 @@ class TestLegacyViews(OsfTestCase):
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
             action='view',
-            path=self.path,
+            path=self.expected_path,
             provider='osfstorage',
         )
         assert_urls_equal(res.location, expected_url)
@@ -735,7 +740,7 @@ class TestLegacyViews(OsfTestCase):
         assert_equal(res.status_code, 301)
         expected_url = self.project.web_url_for(
             'addon_view_or_download_file',
-            path=self.path,
+            path=self.expected_path,
             action='download',
             provider='osfstorage',
         )

@@ -1,0 +1,363 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'install' ]
+2 info using npm@1.4.14
+3 info using node@v0.10.29
+4 verbose readDependencies using package.json deps
+5 verbose install where, deps [ '/home/himanshu/osf.io',
+5 verbose install   [ 'URIjs',
+5 verbose install     'assets-webpack-plugin',
+5 verbose install     'async',
+5 verbose install     'babel-loader',
+5 verbose install     'body-parser',
+5 verbose install     'bootbox',
+5 verbose install     'bower',
+5 verbose install     'c3',
+5 verbose install     'css-loader',
+5 verbose install     'diff',
+5 verbose install     'dropzone',
+5 verbose install     'exports-loader',
+5 verbose install     'express',
+5 verbose install     'file-loader',
+5 verbose install     'font-awesome-webpack',
+5 verbose install     'highlight.js',
+5 verbose install     'historyjs',
+5 verbose install     'html-loader',
+5 verbose install     'imports-loader',
+5 verbose install     'jquery.cookie',
+5 verbose install     'jstimezonedetect',
+5 verbose install     'knockout',
+5 verbose install     'knockout.punches',
+5 verbose install     'knockout.validation',
+5 verbose install     'livedb',
+5 verbose install     'livedb-mongo',
+5 verbose install     'markdown-it',
+5 verbose install     'markdown-it-sanitizer',
+5 verbose install     'markdown-it-toc',
+5 verbose install     'markdown-it-video',
+5 verbose install     'mithril',
+5 verbose install     'moment',
+5 verbose install     'morgan',
+5 verbose install     'object-assign',
+5 verbose install     'pym.js',
+5 verbose install     'raven',
+5 verbose install     'raw-loader',
+5 verbose install     'share',
+5 verbose install     'style-loader',
+5 verbose install     'treebeard',
+5 verbose install     'typeahead.js',
+5 verbose install     'url-loader',
+5 verbose install     'webpack',
+5 verbose install     'ws',
+5 verbose install     'chai',
+5 verbose install     'faker',
+5 verbose install     'karma',
+5 verbose install     'karma-chrome-launcher',
+5 verbose install     'karma-firefox-launcher',
+5 verbose install     'karma-mocha',
+5 verbose install     'karma-phantomjs-launcher',
+5 verbose install     'karma-sauce-launcher',
+5 verbose install     'karma-sinon',
+5 verbose install     'karma-sourcemap-loader',
+5 verbose install     'karma-spec-reporter',
+5 verbose install     'karma-webpack',
+5 verbose install     'mocha' ] ]
+6 info preinstall OSF@0.0.0
+7 verbose readDependencies using package.json deps
+8 verbose already installed skipping css-loader@^0.9.1 /home/himanshu/osf.io
+9 verbose already installed skipping diff@~1.2.2 /home/himanshu/osf.io
+10 verbose cache add [ 'dropzone@git://github.com/sloria/dropzone.git#accept-directory',
+10 verbose cache add   null ]
+11 verbose cache add name=undefined spec="dropzone@git://github.com/sloria/dropzone.git#accept-directory" args=["dropzone@git://github.com/sloria/dropzone.git#accept-directory",null]
+12 verbose parsed url { protocol: null,
+12 verbose parsed url   slashes: null,
+12 verbose parsed url   auth: null,
+12 verbose parsed url   host: null,
+12 verbose parsed url   port: null,
+12 verbose parsed url   hostname: null,
+12 verbose parsed url   hash: '#accept-directory',
+12 verbose parsed url   search: null,
+12 verbose parsed url   query: null,
+12 verbose parsed url   pathname: 'dropzone@git://github.com/sloria/dropzone.git',
+12 verbose parsed url   path: 'dropzone@git://github.com/sloria/dropzone.git',
+12 verbose parsed url   href: 'dropzone@git://github.com/sloria/dropzone.git#accept-directory' }
+13 verbose cache add name="dropzone" spec="git://github.com/sloria/dropzone.git#accept-directory" args=["dropzone","git://github.com/sloria/dropzone.git#accept-directory"]
+14 verbose parsed url { protocol: 'git:',
+14 verbose parsed url   slashes: true,
+14 verbose parsed url   auth: null,
+14 verbose parsed url   host: 'github.com',
+14 verbose parsed url   port: null,
+14 verbose parsed url   hostname: 'github.com',
+14 verbose parsed url   hash: '#accept-directory',
+14 verbose parsed url   search: null,
+14 verbose parsed url   query: null,
+14 verbose parsed url   pathname: '/sloria/dropzone.git',
+14 verbose parsed url   path: '/sloria/dropzone.git',
+14 verbose parsed url   href: 'git://github.com/sloria/dropzone.git#accept-directory' }
+15 verbose already installed skipping express@~4.10.0 /home/himanshu/osf.io
+16 verbose already installed skipping exports-loader@^0.6.2 /home/himanshu/osf.io
+17 silly lockFile 9d4c50a9-t-github-com-sloria-dropzone-git git://github.com/sloria/dropzone.git
+18 verbose lock git://github.com/sloria/dropzone.git /home/himanshu/.npm/9d4c50a9-t-github-com-sloria-dropzone-git.lock
+19 verbose already installed skipping file-loader@^0.8.1 /home/himanshu/osf.io
+20 verbose addRemoteGit [ 'git://github.com/sloria/dropzone.git', 'accept-directory' ]
+21 verbose already installed skipping font-awesome-webpack@0.0.3 /home/himanshu/osf.io
+22 verbose already installed skipping highlight.js@~8.4.0 /home/himanshu/osf.io
+23 verbose already installed skipping html-loader@^0.2.3 /home/himanshu/osf.io
+24 verbose already installed skipping historyjs@^1.8.0-b2 /home/himanshu/osf.io
+25 verbose already installed skipping imports-loader@^0.6.3 /home/himanshu/osf.io
+26 verbose already installed skipping jquery.cookie@^1.4.1 /home/himanshu/osf.io
+27 verbose already installed skipping jstimezonedetect@^1.0.5 /home/himanshu/osf.io
+28 verbose already installed skipping knockout@~3.2.0 /home/himanshu/osf.io
+29 verbose already installed skipping knockout.punches@^0.5.1 /home/himanshu/osf.io
+30 verbose already installed skipping knockout.validation@^2.0.2 /home/himanshu/osf.io
+31 verbose already installed skipping livedb-mongo@~0.4.1 /home/himanshu/osf.io
+32 verbose already installed skipping livedb@~0.4.8 /home/himanshu/osf.io
+33 verbose cache add [ 'markdown-it@~4.1.0', null ]
+34 verbose cache add name=undefined spec="markdown-it@~4.1.0" args=["markdown-it@~4.1.0",null]
+35 verbose parsed url { protocol: null,
+35 verbose parsed url   slashes: null,
+35 verbose parsed url   auth: null,
+35 verbose parsed url   host: null,
+35 verbose parsed url   port: null,
+35 verbose parsed url   hostname: null,
+35 verbose parsed url   hash: null,
+35 verbose parsed url   search: null,
+35 verbose parsed url   query: null,
+35 verbose parsed url   pathname: 'markdown-it@~4.1.0',
+35 verbose parsed url   path: 'markdown-it@~4.1.0',
+35 verbose parsed url   href: 'markdown-it@~4.1.0' }
+36 verbose cache add [ 'markdown-it-sanitizer@~0.3.0', null ]
+37 verbose cache add name=undefined spec="markdown-it-sanitizer@~0.3.0" args=["markdown-it-sanitizer@~0.3.0",null]
+38 verbose parsed url { protocol: null,
+38 verbose parsed url   slashes: null,
+38 verbose parsed url   auth: null,
+38 verbose parsed url   host: null,
+38 verbose parsed url   port: null,
+38 verbose parsed url   hostname: null,
+38 verbose parsed url   hash: null,
+38 verbose parsed url   search: null,
+38 verbose parsed url   query: null,
+38 verbose parsed url   pathname: 'markdown-it-sanitizer@~0.3.0',
+38 verbose parsed url   path: 'markdown-it-sanitizer@~0.3.0',
+38 verbose parsed url   href: 'markdown-it-sanitizer@~0.3.0' }
+39 verbose cache add [ 'markdown-it-toc@~1.1.0', null ]
+40 verbose cache add name=undefined spec="markdown-it-toc@~1.1.0" args=["markdown-it-toc@~1.1.0",null]
+41 verbose parsed url { protocol: null,
+41 verbose parsed url   slashes: null,
+41 verbose parsed url   auth: null,
+41 verbose parsed url   host: null,
+41 verbose parsed url   port: null,
+41 verbose parsed url   hostname: null,
+41 verbose parsed url   hash: null,
+41 verbose parsed url   search: null,
+41 verbose parsed url   query: null,
+41 verbose parsed url   pathname: 'markdown-it-toc@~1.1.0',
+41 verbose parsed url   path: 'markdown-it-toc@~1.1.0',
+41 verbose parsed url   href: 'markdown-it-toc@~1.1.0' }
+42 verbose cache add [ 'markdown-it-video@~0.2.1', null ]
+43 verbose cache add name=undefined spec="markdown-it-video@~0.2.1" args=["markdown-it-video@~0.2.1",null]
+44 verbose parsed url { protocol: null,
+44 verbose parsed url   slashes: null,
+44 verbose parsed url   auth: null,
+44 verbose parsed url   host: null,
+44 verbose parsed url   port: null,
+44 verbose parsed url   hostname: null,
+44 verbose parsed url   hash: null,
+44 verbose parsed url   search: null,
+44 verbose parsed url   query: null,
+44 verbose parsed url   pathname: 'markdown-it-video@~0.2.1',
+44 verbose parsed url   path: 'markdown-it-video@~0.2.1',
+44 verbose parsed url   href: 'markdown-it-video@~0.2.1' }
+45 verbose already installed skipping mithril@^0.1.30 /home/himanshu/osf.io
+46 verbose already installed skipping moment@^2.9.0 /home/himanshu/osf.io
+47 verbose already installed skipping morgan@^1.5.1 /home/himanshu/osf.io
+48 verbose cache add name="markdown-it" spec="~4.1.0" args=["markdown-it","~4.1.0"]
+49 verbose parsed url { protocol: null,
+49 verbose parsed url   slashes: null,
+49 verbose parsed url   auth: null,
+49 verbose parsed url   host: null,
+49 verbose parsed url   port: null,
+49 verbose parsed url   hostname: null,
+49 verbose parsed url   hash: null,
+49 verbose parsed url   search: null,
+49 verbose parsed url   query: null,
+49 verbose parsed url   pathname: '~4.1.0',
+49 verbose parsed url   path: '~4.1.0',
+49 verbose parsed url   href: '~4.1.0' }
+50 verbose addNamed [ 'markdown-it', '~4.1.0' ]
+51 verbose addNamed [ null, '>=4.1.0-0 <4.2.0-0' ]
+52 silly lockFile 87fab8f1-markdown-it-4-1-0 markdown-it@~4.1.0
+53 verbose lock markdown-it@~4.1.0 /home/himanshu/.npm/87fab8f1-markdown-it-4-1-0.lock
+54 verbose cache add name="markdown-it-sanitizer" spec="~0.3.0" args=["markdown-it-sanitizer","~0.3.0"]
+55 verbose parsed url { protocol: null,
+55 verbose parsed url   slashes: null,
+55 verbose parsed url   auth: null,
+55 verbose parsed url   host: null,
+55 verbose parsed url   port: null,
+55 verbose parsed url   hostname: null,
+55 verbose parsed url   hash: null,
+55 verbose parsed url   search: null,
+55 verbose parsed url   query: null,
+55 verbose parsed url   pathname: '~0.3.0',
+55 verbose parsed url   path: '~0.3.0',
+55 verbose parsed url   href: '~0.3.0' }
+56 verbose addNamed [ 'markdown-it-sanitizer', '~0.3.0' ]
+57 verbose addNamed [ null, '>=0.3.0-0 <0.4.0-0' ]
+58 silly lockFile 5f7cfc08-markdown-it-sanitizer-0-3-0 markdown-it-sanitizer@~0.3.0
+59 verbose lock markdown-it-sanitizer@~0.3.0 /home/himanshu/.npm/5f7cfc08-markdown-it-sanitizer-0-3-0.lock
+60 verbose cache add name="markdown-it-toc" spec="~1.1.0" args=["markdown-it-toc","~1.1.0"]
+61 verbose parsed url { protocol: null,
+61 verbose parsed url   slashes: null,
+61 verbose parsed url   auth: null,
+61 verbose parsed url   host: null,
+61 verbose parsed url   port: null,
+61 verbose parsed url   hostname: null,
+61 verbose parsed url   hash: null,
+61 verbose parsed url   search: null,
+61 verbose parsed url   query: null,
+61 verbose parsed url   pathname: '~1.1.0',
+61 verbose parsed url   path: '~1.1.0',
+61 verbose parsed url   href: '~1.1.0' }
+62 verbose addNamed [ 'markdown-it-toc', '~1.1.0' ]
+63 verbose addNamed [ null, '>=1.1.0-0 <1.2.0-0' ]
+64 silly lockFile 0c412b6d-markdown-it-toc-1-1-0 markdown-it-toc@~1.1.0
+65 verbose lock markdown-it-toc@~1.1.0 /home/himanshu/.npm/0c412b6d-markdown-it-toc-1-1-0.lock
+66 verbose cache add name="markdown-it-video" spec="~0.2.1" args=["markdown-it-video","~0.2.1"]
+67 verbose parsed url { protocol: null,
+67 verbose parsed url   slashes: null,
+67 verbose parsed url   auth: null,
+67 verbose parsed url   host: null,
+67 verbose parsed url   port: null,
+67 verbose parsed url   hostname: null,
+67 verbose parsed url   hash: null,
+67 verbose parsed url   search: null,
+67 verbose parsed url   query: null,
+67 verbose parsed url   pathname: '~0.2.1',
+67 verbose parsed url   path: '~0.2.1',
+67 verbose parsed url   href: '~0.2.1' }
+68 verbose addNamed [ 'markdown-it-video', '~0.2.1' ]
+69 verbose addNamed [ null, '>=0.2.1-0 <0.3.0-0' ]
+70 silly lockFile 03402cfd-markdown-it-video-0-2-1 markdown-it-video@~0.2.1
+71 verbose lock markdown-it-video@~0.2.1 /home/himanshu/.npm/03402cfd-markdown-it-video-0-2-1.lock
+72 verbose git remote.origin.url git://github.com/sloria/dropzone.git
+73 verbose already installed skipping object-assign@^2.0.0 /home/himanshu/osf.io
+74 verbose already installed skipping pym.js@^0.4.1 /home/himanshu/osf.io
+75 verbose already installed skipping raven@^0.7.2 /home/himanshu/osf.io
+76 verbose already installed skipping raw-loader@^0.5.1 /home/himanshu/osf.io
+77 verbose already installed skipping share@~0.7.3 /home/himanshu/osf.io
+78 verbose already installed skipping style-loader@^0.8.3 /home/himanshu/osf.io
+79 verbose cache add [ 'treebeard@git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7',
+79 verbose cache add   null ]
+80 verbose cache add name=undefined spec="treebeard@git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7" args=["treebeard@git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7",null]
+81 verbose parsed url { protocol: null,
+81 verbose parsed url   slashes: null,
+81 verbose parsed url   auth: null,
+81 verbose parsed url   host: null,
+81 verbose parsed url   port: null,
+81 verbose parsed url   hostname: null,
+81 verbose parsed url   hash: '#d6e486b5dcfb3efd062758c1ec7c92735203e5d7',
+81 verbose parsed url   search: null,
+81 verbose parsed url   query: null,
+81 verbose parsed url   pathname: 'treebeard@git://github.com/caneruguz/treebeard.git',
+81 verbose parsed url   path: 'treebeard@git://github.com/caneruguz/treebeard.git',
+81 verbose parsed url   href: 'treebeard@git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7' }
+82 verbose already installed skipping typeahead.js@^0.10.5 /home/himanshu/osf.io
+83 verbose already installed skipping url-loader@^0.5.5 /home/himanshu/osf.io
+84 verbose already installed skipping webpack@^1.7.2 /home/himanshu/osf.io
+85 verbose already installed skipping ws@~0.4.32 /home/himanshu/osf.io
+86 verbose cache add name="treebeard" spec="git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7" args=["treebeard","git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7"]
+87 verbose parsed url { protocol: 'git:',
+87 verbose parsed url   slashes: true,
+87 verbose parsed url   auth: null,
+87 verbose parsed url   host: 'github.com',
+87 verbose parsed url   port: null,
+87 verbose parsed url   hostname: 'github.com',
+87 verbose parsed url   hash: '#d6e486b5dcfb3efd062758c1ec7c92735203e5d7',
+87 verbose parsed url   search: null,
+87 verbose parsed url   query: null,
+87 verbose parsed url   pathname: '/caneruguz/treebeard.git',
+87 verbose parsed url   path: '/caneruguz/treebeard.git',
+87 verbose parsed url   href: 'git://github.com/caneruguz/treebeard.git#d6e486b5dcfb3efd062758c1ec7c92735203e5d7' }
+88 silly lockFile 0cb182e5-thub-com-caneruguz-treebeard-git git://github.com/caneruguz/treebeard.git
+89 verbose lock git://github.com/caneruguz/treebeard.git /home/himanshu/.npm/0cb182e5-thub-com-caneruguz-treebeard-git.lock
+90 verbose already installed skipping chai@^2.1.1 /home/himanshu/osf.io
+91 verbose already installed skipping faker@^2.1.2 /home/himanshu/osf.io
+92 verbose already installed skipping karma@^0.12.31 /home/himanshu/osf.io
+93 silly addNameRange { name: 'markdown-it',
+93 silly addNameRange   range: '>=4.1.0-0 <4.2.0-0',
+93 silly addNameRange   hasData: false }
+94 silly addNameRange { name: 'markdown-it-sanitizer',
+94 silly addNameRange   range: '>=0.3.0-0 <0.4.0-0',
+94 silly addNameRange   hasData: false }
+95 silly addNameRange { name: 'markdown-it-toc',
+95 silly addNameRange   range: '>=1.1.0-0 <1.2.0-0',
+95 silly addNameRange   hasData: false }
+96 silly addNameRange { name: 'markdown-it-video',
+96 silly addNameRange   range: '>=0.2.1-0 <0.3.0-0',
+96 silly addNameRange   hasData: false }
+97 verbose already installed skipping karma-firefox-launcher@^0.1.4 /home/himanshu/osf.io
+98 verbose already installed skipping karma-chrome-launcher@^0.1.7 /home/himanshu/osf.io
+99 verbose already installed skipping karma-mocha@^0.1.10 /home/himanshu/osf.io
+100 verbose already installed skipping karma-phantomjs-launcher@^0.1.4 /home/himanshu/osf.io
+101 verbose already installed skipping karma-sauce-launcher@^0.2.10 /home/himanshu/osf.io
+102 verbose already installed skipping karma-sinon@^1.0.4 /home/himanshu/osf.io
+103 verbose already installed skipping karma-sourcemap-loader@^0.3.4 /home/himanshu/osf.io
+104 verbose already installed skipping karma-spec-reporter@0.0.16 /home/himanshu/osf.io
+105 verbose already installed skipping karma-webpack@^1.5.0 /home/himanshu/osf.io
+106 verbose already installed skipping mocha@^2.1.0 /home/himanshu/osf.io
+107 verbose addRemoteGit [ 'git://github.com/caneruguz/treebeard.git',
+107 verbose addRemoteGit   'd6e486b5dcfb3efd062758c1ec7c92735203e5d7' ]
+108 verbose url raw markdown-it
+109 verbose url resolving [ 'https://registry.npmjs.org/', './markdown-it' ]
+110 verbose url resolved https://registry.npmjs.org/markdown-it
+111 info trying registry request attempt 1 at 17:10:02
+112 verbose etag "B1PC4ICY23UEDTVB84OBJB25A"
+113 http GET https://registry.npmjs.org/markdown-it
+114 verbose url raw markdown-it-sanitizer
+115 verbose url resolving [ 'https://registry.npmjs.org/', './markdown-it-sanitizer' ]
+116 verbose url resolved https://registry.npmjs.org/markdown-it-sanitizer
+117 info trying registry request attempt 1 at 17:10:02
+118 verbose etag "EDTW8VZJZXS3ZD75OSSOUF9VV"
+119 http GET https://registry.npmjs.org/markdown-it-sanitizer
+120 verbose url raw markdown-it-toc
+121 verbose url resolving [ 'https://registry.npmjs.org/', './markdown-it-toc' ]
+122 verbose url resolved https://registry.npmjs.org/markdown-it-toc
+123 info trying registry request attempt 1 at 17:10:02
+124 verbose etag "5D6HGW09Y0H50GAL1QWG6M8G0"
+125 http GET https://registry.npmjs.org/markdown-it-toc
+126 verbose url raw markdown-it-video
+127 verbose url resolving [ 'https://registry.npmjs.org/', './markdown-it-video' ]
+128 verbose url resolved https://registry.npmjs.org/markdown-it-video
+129 info trying registry request attempt 1 at 17:10:02
+130 verbose etag "1G7IEG3J5ZAKEWWRJU4HAFRLS"
+131 http GET https://registry.npmjs.org/markdown-it-video
+132 verbose already installed skipping async@^0.9.0 /home/himanshu/osf.io
+133 verbose already installed skipping URIjs@^1.14.1 /home/himanshu/osf.io
+134 verbose already installed skipping assets-webpack-plugin@^0.1.0 /home/himanshu/osf.io
+135 verbose already installed skipping babel-loader@^4.1.0 /home/himanshu/osf.io
+136 verbose already installed skipping body-parser@~1.12.0 /home/himanshu/osf.io
+137 verbose already installed skipping bootbox@^4.4.0 /home/himanshu/osf.io
+138 verbose already installed skipping bower@^1.3.12 /home/himanshu/osf.io
+139 verbose already installed skipping c3@^0.4.10 /home/himanshu/osf.io
+140 verbose git remote.origin.url git://github.com/caneruguz/treebeard.git
+141 verbose git fetch -a origin (git://github.com/sloria/dropzone.git)
+142 verbose git rev-list -n1 accept-directory c4afdb2e94623c4bb36b6085b350b751c6360e37
+143 verbose resolved git url git://github.com/sloria/dropzone.git#c4afdb2e94623c4bb36b6085b350b751c6360e37
+144 silly lockFile 9d4c50a9-t-github-com-sloria-dropzone-git git://github.com/sloria/dropzone.git
+145 silly lockFile 9d4c50a9-t-github-com-sloria-dropzone-git git://github.com/sloria/dropzone.git
+146 error Error: EACCES, mkdir '/home/himanshu/tmp/npm-17285-jK6ifPSC'
+146 error  { [Error: EACCES, mkdir '/home/himanshu/tmp/npm-17285-jK6ifPSC']
+146 error   errno: 3,
+146 error   code: 'EACCES',
+146 error   path: '/home/himanshu/tmp/npm-17285-jK6ifPSC',
+146 error   parent: 'OSF' }
+147 error Please try running this command again as root/Administrator.
+148 error System Linux 3.13.0-43-generic
+149 error command "/usr/local/bin/node" "/usr/local/bin/npm" "install"
+150 error cwd /home/himanshu/osf.io
+151 error node -v v0.10.29
+152 error npm -v 1.4.14
+153 error path /home/himanshu/tmp/npm-17285-jK6ifPSC
+154 error code EACCES
+155 error errno 3
+156 error stack Error: EACCES, mkdir '/home/himanshu/tmp/npm-17285-jK6ifPSC'
+157 verbose exit [ 3, true ]

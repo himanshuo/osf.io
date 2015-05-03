@@ -7,14 +7,17 @@ from nose.tools import *  # noqa (PEP8 asserts)
 import pytz
 import datetime
 import urlparse
+import itsdangerous
 from dateutil import parser
 
-from modularodm.exceptions import ValidationError, ValidationValueError
+from modularodm import Q
+from modularodm.exceptions import ValidationError, ValidationValueError, ValidationTypeError
 
 
 from framework.analytics import get_total_activity_count
 from framework.exceptions import PermissionsError
 from framework.auth import User, Auth
+from framework.sessions.model import Session
 from framework.auth import exceptions as auth_exc
 from framework.auth.exceptions import ChangePasswordError, ExpiredTokenError
 from framework.auth.utils import impute_names_model
@@ -23,7 +26,7 @@ from website import filters, language, settings
 from website.exceptions import NodeStateError
 from website.profile.utils import serialize_user
 from website.project.model import (
-    ApiKey, Node, NodeLog, Pointer, ensure_schemas, has_anonymous_link,
+    ApiKey, Comment, Node, NodeLog, Pointer, ensure_schemas, has_anonymous_link,
     get_pointer_parent,
 )
 from website.util.permissions import CREATOR_PERMISSIONS
@@ -42,7 +45,7 @@ from tests.factories import (
     UserFactory, ApiKeyFactory, NodeFactory, PointerFactory,
     ProjectFactory, NodeLogFactory, WatchConfigFactory,
     NodeWikiFactory, RegistrationFactory, UnregUserFactory,
-    ProjectWithAddonFactory, UnconfirmedUserFactory, PrivateLinkFactory,
+    ProjectWithAddonFactory, UnconfirmedUserFactory, CommentFactory, PrivateLinkFactory,
     AuthUserFactory, DashboardFactory, FolderFactory
 )
 from tests.test_features import requires_piwik
@@ -368,6 +371,21 @@ class TestUser(OsfTestCase):
         token = u.get_confirmation_token('foo@bar.com', force=True)
         assert_equal(token, '54321')
 
+    # Some old users will not have an 'expired' key in their email_verifications.
+    # Assume the token in expired
+    def test_get_confirmation_token_if_email_verification_doesnt_have_expiration(self):
+        u = UserFactory()
+
+        email = fake.email()
+        u.add_unconfirmed_email(email)
+        # manually remove 'expiration' key
+        token = u.get_confirmation_token(email)
+        del u.email_verifications[token]['expiration']
+        u.save()
+
+        with assert_raises(ExpiredTokenError):
+            u.get_confirmation_token(email)
+
     @mock.patch('website.security.random_string')
     def test_get_confirmation_url(self, random_string):
         random_string.return_value = 'abcde'
@@ -688,7 +706,7 @@ class TestUser(OsfTestCase):
     def test_display_full_name_unregistered(self):
         name = fake.name()
         u = UnregUserFactory()
-        project =ProjectFactory()
+        project = ProjectFactory()
         project.add_unregistered_contributor(fullname=name, email=u.username,
             auth=Auth(project.creator))
         project.save()
@@ -718,6 +736,58 @@ class TestUser(OsfTestCase):
 
         assert_equal(self.user.n_projects_in_common(user2), 1)
         assert_equal(self.user.n_projects_in_common(user3), 0)
+
+    def test_user_get_cookie(self):
+        user = UserFactory()
+        super_secret_key = 'children need maps'
+        signer = itsdangerous.Signer(super_secret_key)
+        session = Session(data={
+            'auth_user_id': user._id,
+            'auth_user_username': user.username,
+            'auth_user_fullname': user.fullname,
+        })
+        session.save()
+
+        assert_equal(signer.unsign(user.get_or_create_cookie(super_secret_key)), session._id)
+
+    def test_user_get_cookie_no_session(self):
+        user = UserFactory()
+        super_secret_key = 'children need maps'
+        signer = itsdangerous.Signer(super_secret_key)
+        assert_equal(
+            0,
+            Session.find(Q('data.auth_user_id', 'eq', user._id)).count()
+        )
+
+        cookie = user.get_or_create_cookie(super_secret_key)
+
+        session = Session.find(Q('data.auth_user_id', 'eq', user._id))[0]
+
+        assert_equal(session._id, signer.unsign(cookie))
+        assert_equal(session.data['auth_user_id'], user._id)
+        assert_equal(session.data['auth_user_username'], user.username)
+        assert_equal(session.data['auth_user_fullname'], user.fullname)
+
+    def test_get_user_by_cookie(self):
+        user = UserFactory()
+        cookie = user.get_or_create_cookie()
+        assert_equal(user, User.from_cookie(cookie))
+
+    def test_get_user_by_cookie_returns_none(self):
+        assert_equal(None, User.from_cookie(''))
+
+    def test_get_user_by_cookie_bad_cookie(self):
+        assert_equal(None, User.from_cookie('foobar'))
+
+    def test_get_user_by_cookie_no_session(self):
+        user = UserFactory()
+        cookie = user.get_or_create_cookie()
+        Session.remove()
+        assert_equal(
+            0,
+            Session.find(Q('data.auth_user_id', 'eq', user._id)).count()
+        )
+        assert_equal(None, User.from_cookie(cookie))
 
 
 class TestUserParse(unittest.TestCase):
@@ -3349,6 +3419,95 @@ class TestProjectWithAddons(OsfTestCase):
         p = ProjectWithAddonFactory(addon='s3')
         assert_true(p.get_addon('s3'))
         assert_true(p.creator.get_addon('s3'))
+
+
+class TestComments(OsfTestCase):
+
+    def setUp(self):
+        super(TestComments, self).setUp()
+        self.comment = CommentFactory()
+        self.consolidated_auth = Auth(user=self.comment.user)
+
+    def test_create(self):
+        comment = Comment.create(
+            auth=self.consolidated_auth,
+            user=self.comment.user,
+            node=self.comment.node,
+            target=self.comment.target,
+            is_public=True,
+        )
+        assert_equal(comment.user, self.comment.user)
+        assert_equal(comment.node, self.comment.node)
+        assert_equal(comment.target, self.comment.target)
+        assert_equal(len(comment.node.logs), 2)
+        assert_equal(comment.node.logs[-1].action, NodeLog.COMMENT_ADDED)
+
+    def test_edit(self):
+        self.comment.edit(
+            auth=self.consolidated_auth,
+            content='edited'
+        )
+        assert_equal(self.comment.content, 'edited')
+        assert_true(self.comment.modified)
+        assert_equal(len(self.comment.node.logs), 2)
+        assert_equal(self.comment.node.logs[-1].action, NodeLog.COMMENT_UPDATED)
+
+    def test_delete(self):
+        self.comment.delete(auth=self.consolidated_auth)
+        assert_equal(self.comment.is_deleted, True)
+        assert_equal(len(self.comment.node.logs), 2)
+        assert_equal(self.comment.node.logs[-1].action, NodeLog.COMMENT_REMOVED)
+
+    def test_undelete(self):
+        self.comment.delete(auth=self.consolidated_auth)
+        self.comment.undelete(auth=self.consolidated_auth)
+        assert_equal(self.comment.is_deleted, False)
+        assert_equal(len(self.comment.node.logs), 3)
+        assert_equal(self.comment.node.logs[-1].action, NodeLog.COMMENT_ADDED)
+
+    def test_report_abuse(self):
+        user = UserFactory()
+        self.comment.report_abuse(user, category='spam', text='ads', save=True)
+        assert_in(user._id, self.comment.reports)
+        assert_equal(
+            self.comment.reports[user._id],
+            {'category': 'spam', 'text': 'ads'}
+        )
+
+    def test_report_abuse_own_comment(self):
+        with assert_raises(ValueError):
+            self.comment.report_abuse(
+                self.comment.user, category='spam', text='ads', save=True
+            )
+
+    def test_unreport_abuse(self):
+        user = UserFactory()
+        self.comment.report_abuse(user, category='spam', text='ads', save=True)
+        self.comment.unreport_abuse(user, save=True)
+        assert_not_in(user._id, self.comment.reports)
+
+    def test_unreport_abuse_not_reporter(self):
+        reporter = UserFactory()
+        non_reporter = UserFactory()
+        self.comment.report_abuse(reporter, category='spam', text='ads', save=True)
+        with assert_raises(ValueError):
+            self.comment.unreport_abuse(non_reporter, save=True)
+        assert_in(reporter._id, self.comment.reports)
+
+    def test_validate_reports_bad_key(self):
+        self.comment.reports[None] = {'category': 'spam', 'text': 'ads'}
+        with assert_raises(ValidationValueError):
+            self.comment.save()
+
+    def test_validate_reports_bad_type(self):
+        self.comment.reports[self.comment.user._id] = 'not a dict'
+        with assert_raises(ValidationTypeError):
+            self.comment.save()
+
+    def test_validate_reports_bad_value(self):
+        self.comment.reports[self.comment.user._id] = {'foo': 'bar'}
+        with assert_raises(ValidationValueError):
+            self.comment.save()
 
 
 class TestPrivateLink(OsfTestCase):

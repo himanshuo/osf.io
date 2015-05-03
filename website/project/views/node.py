@@ -266,6 +266,11 @@ def node_fork_page(**kwargs):
     else:
         node_to_use = project
 
+    if settings.DISK_SAVING_MODE:
+        raise HTTPError(
+            http.METHOD_NOT_ALLOWED,
+            redirect_url=node_to_use.url
+        )
     try:
         fork = node_to_use.fork_node(auth)
     except PermissionsError:
@@ -1005,8 +1010,9 @@ def n_unread_total(node, user, page, check=False):
 
 def n_unread_total_node(user, node):
     default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
+    import pdb;pdb.set_trace()
     view_timestamp = user.comments_viewed_timestamp.get(node._id, dict())
-    view_timestamp = view_timestamp.get('node', None)
+    #view_timestamp = view_timestamp.get('node', None)
     if not view_timestamp:
         user.comments_viewed_timestamp[node._id] = dict()
         user.comments_viewed_timestamp[node._id]['node'] = default_timestamp
@@ -1035,7 +1041,7 @@ def n_unread_total_wiki(user, node):
 def n_unread_total_files(user, node, check=False):
     default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
     view_timestamp = user.comments_viewed_timestamp.get(node._id, dict())
-    view_timestamp = view_timestamp.get('files', default_timestamp)
+    #view_timestamp = view_timestamp.get('files', default_timestamp)
     n_unread = 0
     if isinstance(view_timestamp, dict):
         for file_id in node.commented_files.keys():
