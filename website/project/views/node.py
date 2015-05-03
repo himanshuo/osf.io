@@ -41,10 +41,6 @@ from website.util.sanitize import strip_html
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-#for spam_admin
-import json
-import requests
-
 
 
 @must_be_valid_project  # returns project
@@ -266,11 +262,6 @@ def node_fork_page(**kwargs):
     else:
         node_to_use = project
 
-    if settings.DISK_SAVING_MODE:
-        raise HTTPError(
-            http.METHOD_NOT_ALLOWED,
-            redirect_url=node_to_use.url
-        )
     try:
         fork = node_to_use.fork_node(auth)
     except PermissionsError:
@@ -487,128 +478,19 @@ def project_statistics(**kwargs):
 # Make Private/Public
 ###############################################################################
 
-def _format_spam_node_data(node):
-    from website.addons.wiki.model import NodeWikiPage
-    from website.views import serialize_log
-
-    logs = []
-    for log in reversed(node.logs):
-        if log:
-            logs.append(serialize_log(log))
-
-    #node.contributors
-
-    content = {
-        'wikis':[wiki.content for wiki in NodeWikiPage.find(Q('node','eq',node))],
-        'logs':logs,
-        'tags': [tag._id for tag in node.tags]
-    }
-
-
-    data = {
-        'message':content,
-        'project_title': node.title,
-        'category': node.category_display,
-        'description': node.description or '',
-        'url': node.url,
-        'absolute_url': node.absolute_url,
-        'date_created': iso8601format(node.date_created),
-        'date_modified': iso8601format(node.logs[-1].date) if node.logs else '',
-        'date': iso8601format(node.logs[-1].date) if node.logs else '',
-        'tags': [tag._id for tag in node.tags],
-        'is_registration': node.is_registration,
-        'registered_from_url': node.registered_from.url if node.is_registration else '',
-        'registered_date': iso8601format(node.registered_date) if node.is_registration else '',
-        'registration_count': len(node.node__registrations),
-        'is_fork': node.is_fork,
-        'forked_from_id': node.forked_from._primary_key if node.is_fork else '',
-        'forked_from_display_absolute_url': node.forked_from.display_absolute_url if node.is_fork else '',
-        'forked_date': iso8601format(node.forked_date) if node.is_fork else '',
-        'fork_count': len(node.node__forked.find(Q('is_deleted', 'eq', False))),
-        'templated_count': len(node.templated_list),
-        'watched_count': len(node.watchconfig__watched),
-        'private_links': [x.to_json() for x in node.private_links_active],
-        'points': len(node.get_points(deleted=False, folders=False)),
-        'comment_level': node.comment_level,
-        'has_comments': bool(getattr(node, 'commented', [])),
-        'has_children': bool(getattr(node, 'commented', False)),
-        'author': node.creator.fullname,
-        'email':node.creator.emails,
-        #'contributors': [contributor.name in node.contributors,
-
-
-    }
-
-    return data
-
-
-def _project_is_spam(node):
-
-
-    try:
-
-        data = _format_spam_node_data(node)
-
-
-        res = requests.post('http://localhost:8000', data=json.dumps(data))
-
-        if res.text == "SPAM":
-            print "------------SPAM-----------\n"
-            return True
-        elif res.text=="HAM":
-            print "------------NOT SPAM-----------\n"
-        else:
-            print "ERROR WITH SPAMASSASSIN REQUEST"
-
-        return False
-    except:
-        return False
-
-def train_spam_project(project, is_spam):
-    try:
-
-        serialized_project = _format_spam_node_data(project)
-        serialized_project['is_spam']=is_spam
-
-        r = requests.post('http://localhost:8000/teach', data=json.dumps(serialized_project))
-        if r.text == "Learned":
-            print "------------Learned-----------\n"
-            return True
-        else:
-            print "------------NOT Learned-----------\n",r.text,"\n--------------------------------"
-    except:
-        pass
-
-
-
-
-
-
 
 @must_be_valid_project
 @must_have_permission('admin')
 def project_before_set_public(**kwargs):
-
-
     node = kwargs['node'] or kwargs['project']
-
     prompt = node.callback('before_make_public')
-    is_spam = False
-
-    if _project_is_spam(node):
-        node.mark_as_possible_spam(save=True)
-        is_spam = True
-
-    else:
-
-        anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
-        if anonymous_link_warning:
-            prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
-                          'contributors after a project or component is made public.')
+    anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
+    if anonymous_link_warning:
+        prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
+                      'contributors after a project or component is made public.')
 
     return {
-        'prompts': prompt,
-        'is_spam':is_spam
+        'prompts': prompt
     }
 
 
@@ -879,10 +761,6 @@ def _view_project(node, auth, primary=False, check_files=False):
             'points': len(node.get_points(deleted=False, folders=False)),
             'piwik_site_id': node.piwik_site_id,
 
-
-
-
-
             'comment_level': node.comment_level,
             'has_comments': bool(getattr(node, 'commented', [])),
             'has_children': bool(getattr(node, 'commented', False)),
@@ -982,9 +860,7 @@ def n_unread_comments(node, user, page, root_id=None, check=False):
         if not exists:
             return 0
     default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
-    view_timestamp = user.comments_viewed_timestamp.get(node._id, default_timestamp)
-    if isinstance(view_timestamp, dict):
-        view_timestamp = view_timestamp.get(page, default_timestamp)
+    view_timestamp = user.get_node_comment_timestamps(node, page)
     if not page == 'node' and isinstance(view_timestamp, dict):
         view_timestamp = view_timestamp.get(root_id, default_timestamp)
     return Comment.find(Q('node', 'eq', node) &
@@ -1009,14 +885,7 @@ def n_unread_total(node, user, page, check=False):
 
 
 def n_unread_total_node(user, node):
-    default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
-    import pdb;pdb.set_trace()
-    view_timestamp = user.comments_viewed_timestamp.get(node._id, dict())
-    #view_timestamp = view_timestamp.get('node', None)
-    if not view_timestamp:
-        user.comments_viewed_timestamp[node._id] = dict()
-        user.comments_viewed_timestamp[node._id]['node'] = default_timestamp
-        view_timestamp = default_timestamp
+    view_timestamp = user.get_node_comment_timestamps(node, 'node')
     return Comment.find(Q('node', 'eq', node) &
                         Q('user', 'ne', user) &
                         Q('date_created', 'gt', view_timestamp) &
@@ -1028,10 +897,9 @@ def n_unread_total_node(user, node):
 
 def n_unread_total_wiki(user, node):
     from website.addons.wiki.model import NodeWikiPage
-    root_targets = NodeWikiPage.find(Q('node', 'eq', node)).get_keys()
+    root_targets = list(NodeWikiPage.find(Q('node', 'eq', node)))
     n_unread = 0
-    for root_target in root_targets:
-        wiki_page = NodeWikiPage.load(root_target)
+    for wiki_page in root_targets:
         if hasattr(wiki_page, 'commented'):
             root_id = wiki_page.page_name
             n_unread += n_unread_comments(node, user, 'wiki', root_id)
@@ -1039,21 +907,21 @@ def n_unread_total_wiki(user, node):
 
 
 def n_unread_total_files(user, node, check=False):
-    default_timestamp = datetime(1970, 1, 1, 12, 0, 0)
-    view_timestamp = user.comments_viewed_timestamp.get(node._id, dict())
-    #view_timestamp = view_timestamp.get('files', default_timestamp)
+    file_timestamps = user.get_node_comment_timestamps(node, 'files')
     n_unread = 0
-    if isinstance(view_timestamp, dict):
-        for file_id in node.commented_files.keys():
-            n_unread += n_unread_comments(node, user, 'files', file_id, check)
-    else:
-        file_timestamps = dict()
-        user.comments_viewed_timestamp[node._id]['files'] = file_timestamps
-        for file_id in node.commented_files.keys():
-            file_timestamps[file_id] = default_timestamp
-            n_unread += n_unread_comments(node, user, 'files', file_id, check)
-        user.save()
+    if not file_timestamps:
+        set_default_file_comment_timestamps(user, node)
+    for file_id in node.commented_files:
+        n_unread += n_unread_comments(node, user, 'files', file_id, check)
     return n_unread
+
+
+def set_default_file_comment_timestamps(user, node):
+    user.comments_viewed_timestamp[node._id]['files'] = dict()
+    file_timestamps = user.comments_viewed_timestamp[node._id]['files']
+    for file_id in node.commented_files:
+        file_timestamps[file_id] = datetime(1970, 1, 1, 12, 0, 0)
+    user.save()
 
 
 def check_file_exists(node, file_id):

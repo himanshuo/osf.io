@@ -39,6 +39,8 @@ var $comments = $('.comments');
 if ($comments.length) {
 
     var options = {
+        nodeId : window.contextVars.node.id,
+        nodeApiUrl: window.contextVars.node.urls.api,
         hostName: window.contextVars.node.id,
         userName: window.contextVars.currentUser.name,
         canComment: window.contextVars.currentUser.canComment,
@@ -56,7 +58,7 @@ if ($comments.length) {
     });
 
     Comment.init('.comment-pane', commentPaneOptions);
-    Comment.init('#comments-widget-container', commentWidgetOptions);
+    Comment.init('#commentsWidgetContainer', commentWidgetOptions);
 }
 
 // Initialize CitationWidget if user isn't viewing through an anonymized VOL

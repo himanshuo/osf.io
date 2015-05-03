@@ -9,13 +9,11 @@ from modularodm import Q
 
 from framework.exceptions import HTTPError
 from framework.auth.decorators import must_be_logged_in
-from framework.auth.utils import privacy_info_handle
 from framework.forms.utils import sanitize
 
 from website import settings
 from website.notifications.emails import notify
 from website.notifications.constants import PROVIDERS
-from website.filters import gravatar
 from website.models import Guid, Comment
 from website.addons.base import GuidFile
 from website.project.decorators import must_be_contributor_or_public
@@ -23,9 +21,9 @@ from datetime import datetime
 from website.project.model import has_anonymous_link
 from website.project.views.node import _view_project, n_unread_comments
 from website.addons.figshare.exceptions import FigshareIsDraftError
+from website.profile.utils import serialize_user
 
-import requests
-import json
+
 
 @must_be_contributor_or_public
 def view_comments_project(auth, **kwargs):
@@ -81,70 +79,52 @@ def resolve_target(node, page, guid):
     return target.referent
 
 
-def collect_discussion(target, users=None):
-
+def update_discussion(target, comments_dict):
     if not getattr(target, 'commented', None) is None:
         for comment in getattr(target, 'commented', []):
             if not (comment.is_deleted or comment.is_hidden):
-                if comment.spam_status==Comment.HAM or comment.spam_status==Comment.UNKNOWN:
-                    users[comment.user].append(comment)
-            collect_discussion(comment, users=users)
-    return users
+                comments_dict[comment.user].append(comment)
+            update_discussion(comment, comments_dict=comments_dict)
+    return comments_dict
 
 
 def comment_discussion(comments, node, anonymous=False, widget=False):
 
-    users = collections.defaultdict(list)
+    comments_dict = collections.defaultdict(list)
     for comment in comments:
         if not (comment.is_deleted or comment.is_hidden):
-            users[comment.user].append(comment)
+            comments_dict[comment.user].append(comment)
         if not widget:
-            collect_discussion(comment, users=users)
+            update_discussion(comment, comments_dict=comments_dict)
 
     sorted_users_frequency = sorted(
-        users.keys(),
-        key=lambda item: len(users[item]),
+        comments_dict.keys(),
+        key=lambda item: len(comments_dict[item]),
         reverse=True,
     )
 
     def get_recency(item):
-        most_recent = users[item][0].date_created
-        for comment in users[item][1:]:
+        most_recent = comments_dict[item][0].date_created
+        for comment in comments_dict[item][1:]:
             if comment.date_created > most_recent:
                 most_recent = comment.date_created
         return most_recent
 
     sorted_users_recency = sorted(
-        users.keys(),
-        key=lambda item: get_recency(item),
+        comments_dict.keys(),
+        key=get_recency,
         reverse=True,
     )
 
     return {
         'discussionByFrequency': [
-            serialize_discussion(node, user, len(users[user]), anonymous)
+            serialize_user(user, node=node, n_comments=len(comments_dict[user]), anonymous=anonymous)
             for user in sorted_users_frequency
         ],
         'discussionByRecency': [
-            serialize_discussion(node, user, len(users[user]), anonymous)
+            serialize_user(user, node=node, n_comments=len(comments_dict[user]), anonymous=anonymous)
             for user in sorted_users_recency
         ]
-    }
-
-
-def serialize_discussion(node, user, num, anonymous=False):
-    return {
-        'id': privacy_info_handle(user._id, anonymous),
-        'url': privacy_info_handle(user.url, anonymous),
-        'fullname': privacy_info_handle(user.fullname, anonymous, name=True),
-        'isContributor': node.is_contributor(user),
-        'gravatarUrl': privacy_info_handle(
-            gravatar(
-                user, use_ssl=True, size=settings.GRAVATAR_SIZE_DISCUSSION,
-            ),
-            anonymous
-        ),
-        'numOfComments': num
     }
 
 
@@ -162,10 +142,10 @@ def serialize_comment(comment, auth, anonymous=False):
         title = ''
     return {
         'id': comment._id,
-        'author': serialize_discussion(node, comment.user, 1, anonymous),
+        'author': serialize_user(comment.user, node=node, n_comments=1, anonymous=anonymous),
         'dateCreated': comment.date_created.isoformat(),
         'dateModified': comment.date_modified.isoformat(),
-        'page': comment.page or Comment.OVERVIEW,
+        'page': comment.page,
         'targetId': getattr(comment.target, 'page_name', comment.target._id),
         'rootId': root_id,
         'title': title,
@@ -177,20 +157,7 @@ def serialize_comment(comment, auth, anonymous=False):
         'isDeleted': comment.is_deleted,
         'isHidden': comment.is_hidden,
         'isAbuse': auth.user and auth.user._id in comment.reports,
-        'markedSpam': comment.spam_status == Comment.SPAM or comment.spam_status == Comment.POSSIBLE_SPAM
     }
-
-
-def serialize_comments(record, auth, anonymous=False):
-
-    serialized_comments = []
-    for comment in getattr(record, 'commented', []):
-        if comment.spam_status == Comment.UNKNOWN or comment.spam_status == Comment.HAM:
-            serialized_comments.append(serialize_comment(comment, auth, anonymous))
-    return serialized_comments
-
-
-
 
 
 def kwargs_to_comment(kwargs, owner=False):
@@ -222,8 +189,9 @@ def add_comment(**kwargs):
     guid = comment_info.get('target')
     target = resolve_target(node, page, guid)
 
-    content = comment_info.get('content').strip()
-    content = sanitize(content)
+    content = comment_info.get('content', None)
+    if content:
+        content = sanitize(content.strip())
     if not content:
         raise HTTPError(http.BAD_REQUEST)
     if len(content) > settings.COMMENT_MAXLENGTH:
@@ -237,19 +205,6 @@ def add_comment(**kwargs):
         page=page,
         content=content,
     )
-
-
-    if is_spam(comment):
-
-        #let the comment still show up for the user. DON'T let it show up for other users though.
-        comment.mark_as_possible_spam(auth=auth, save=True)
-
-
-
-
-
-
-
     comment.save()
 
     context = dict(
@@ -287,31 +242,6 @@ def add_comment(**kwargs):
         'comment': serialize_comment(comment, auth)
     }, http.CREATED
 
-def is_spam(comment):
-    try:
-
-        if settings.SPAM_ASSASSIN == False:
-            return False
-
-
-        content = comment.content
-
-        data = {
-            'message': comment.content,
-            'email': comment.user.emails[0] if len(comment.user.emails) >0 else None,
-            'date': str(datetime.utcnow()),
-            'author': comment.user.fullname,
-            'project_title':comment.node.title,
-        }
-
-
-        r = requests.post('http://localhost:8000', data=json.dumps(data))
-        if r.text == "SPAM":
-            return True
-
-        return False
-    except:
-        return False
 
 def get_file_provider(page, root_target):
     if page == Comment.FILES:
@@ -360,7 +290,6 @@ def is_reply(target):
 
 @must_be_contributor_or_public
 def list_comments(auth, **kwargs):
-
     node = kwargs['node'] or kwargs['project']
     anonymous = has_anonymous_link(node, auth)
     page = request.args.get('page')
@@ -380,9 +309,6 @@ def list_comments(auth, **kwargs):
         target = resolve_target(node, page, guid)
         comments = getattr(target, 'commented', [])
 
-    if is_list:
-        discussions = comment_discussion(comments, node, anonymous=anonymous, widget=is_widget)
-
     n_unread = 0
     if node.is_contributor(auth.user):
         if auth.user.comments_viewed_timestamp is None:
@@ -398,16 +324,14 @@ def list_comments(auth, **kwargs):
         'nUnread': n_unread
     }
     if is_list:
+        discussions = comment_discussion(comments, node, anonymous=anonymous, widget=is_widget)
         ret.update(discussions)
+
     return ret
 
 
 def list_total_comments_widget(node, auth):
-    comments_keys = Comment.find(Q('node', 'eq', node)).get_keys()
-    comments = []
-    for cid in comments_keys:
-        cmt = Comment.load(cid)
-        comments.append(cmt)
+    comments = list(Comment.find(Q('node', 'eq', node)))
     comments.sort(
         key=lambda item: item.date_created,
         reverse=False
@@ -417,27 +341,26 @@ def list_total_comments_widget(node, auth):
 
 def list_total_comments(node, auth, page):
     if page == 'total':
-        comments_keys = Comment.find(Q('node', 'eq', node)).get_keys()
+        comments = list(Comment.find(Q('node', 'eq', node)))
     else:
-        comments_keys = Comment.find(Q('node', 'eq', node) &
-                                Q('page', 'eq', page)).get_keys()
-    comments = []
-    for cid in comments_keys:
-        cmt = Comment.load(cid)
-        if not isinstance(cmt.target, Comment):
-            comments.append(cmt)
-    comments = sorted(
-        comments,
+        comments = list(Comment.find(Q('node', 'eq', node) &
+                                Q('page', 'eq', page)))
+
+    root_comments = []
+    for comment in comments:
+        if not isinstance(comment.target, Comment):
+            root_comments.append(comment)
+    root_comments = sorted(
+        root_comments,
         key=lambda item: item.date_created,
         reverse=False,
     )
-    return comments
+    return root_comments
 
 
 @must_be_logged_in
 @must_be_contributor_or_public
 def edit_comment(**kwargs):
-
     auth = kwargs['auth']
 
     comment = kwargs_to_comment(kwargs, owner=True)
@@ -455,18 +378,12 @@ def edit_comment(**kwargs):
         save=True
     )
 
-    if is_spam(comment):
-
-        comment.mark_as_possible_spam(auth=auth, save=True)
-
-
     return serialize_comment(comment, auth)
 
 
 @must_be_logged_in
 @must_be_contributor_or_public
 def delete_comment(**kwargs):
-
     auth = kwargs['auth']
     comment = kwargs_to_comment(kwargs, owner=True)
     comment.delete(auth=auth, save=True)
@@ -477,7 +394,6 @@ def delete_comment(**kwargs):
 @must_be_logged_in
 @must_be_contributor_or_public
 def undelete_comment(**kwargs):
-
     auth = kwargs['auth']
     comment = kwargs_to_comment(kwargs, owner=True)
     comment.undelete(auth=auth, save=True)
@@ -520,23 +436,6 @@ def _update_comments_timestamp(auth, node, page=Comment.OVERVIEW, root_id=None):
         return {}
 
 
-def train_spam(comment, is_spam):
-    try:
-        data = {
-            'message': comment.content,
-            'email': comment.user.emails[0] if len(comment.user.emails) >0 else None,
-            'date': str(datetime.utcnow()),
-            'author': comment.user.fullname,
-            'project_title':comment.node.title,
-            'is_spam':is_spam
-        }
-
-        r = requests.post('http://localhost:8000/teach', data=json.dumps(data))
-        if r.text == "Learned":
-            return True
-    except:
-        pass
-
 def _update_comments_timestamp_total(node, auth, page):
     from website.addons.wiki.model import NodeWikiPage
     ret = {}
@@ -547,9 +446,8 @@ def _update_comments_timestamp_total(node, auth, page):
                 continue
             ret = _update_comments_timestamp(auth, node, page, root_target._id)
     elif page == Comment.WIKI:
-        root_targets = NodeWikiPage.find(Q('node', 'eq', node)).get_keys()
-        for root_target in root_targets:
-            wiki_page = NodeWikiPage.load(root_target)
+        root_targets = list(NodeWikiPage.find(Q('node', 'eq', node)))
+        for wiki_page in root_targets:
             if hasattr(wiki_page, 'commented'):
                 ret = _update_comments_timestamp(auth, node, page, wiki_page.page_name)
     return ret
@@ -589,7 +487,6 @@ def report_abuse(**kwargs):
 @must_be_logged_in
 @must_be_contributor_or_public
 def unreport_abuse(**kwargs):
-
     auth = kwargs['auth']
     user = auth.user
 

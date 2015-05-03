@@ -17,9 +17,6 @@ var CommentPane = require('js/commentpane');
 var markdown = require('js/markdown');
 var waterbutler = require('./waterbutler');
 
-var nodeApiUrl = window.contextVars.node.urls.api;
-var nodeId = window.contextVars.node.id;
-var nodeUrl = '/' + nodeId + '/';
 
 // Maximum length for comments, in characters
 var FIGSHARE = 'figshare';
@@ -152,7 +149,7 @@ BaseComment.prototype.setupToolTips = function(elm) {
     });
 };
 
-BaseComment.prototype.fetch = function(isCommentList, thread) {
+BaseComment.prototype.fetch = function(isCommentList, nodeId, thread) {
     var self = this;
     var deferred = $.Deferred();
     if (self._loaded) {
@@ -162,7 +159,7 @@ BaseComment.prototype.fetch = function(isCommentList, thread) {
         return self.getThread(thread);
     }
     $.getJSON(
-        nodeApiUrl + 'comments/',
+        self.$root.nodeApiUrl + 'comments/',
         {
             page: self.page(),
             target: self.id(),
@@ -181,7 +178,7 @@ BaseComment.prototype.fetch = function(isCommentList, thread) {
             }
             self.unreadComments(response.nUnread);
             deferred.resolve(self.comments());
-            self.configureCommentsVisibility();
+            self.configureCommentsVisibility(nodeId);
             self._loaded = true;
         }
     );
@@ -194,7 +191,7 @@ BaseComment.prototype.getThread = function(thread_id) {
     if (self._loaded) {
         deferred.resolve(self.comments());
     }
-    var request = $.getJSON(nodeApiUrl + 'comment/' + thread_id + '/');
+    var request = $.getJSON(self.$root.nodeApiUrl + 'comment/' + thread_id + '/');
     request.done(function(response){
         self.comments([new CommentModel(response.comment, self, self.$root)]);
         deferred.resolve(self.comments());
@@ -204,7 +201,7 @@ BaseComment.prototype.getThread = function(thread_id) {
     return deferred.promise();
 };
 
-BaseComment.prototype.configureCommentsVisibility = function() {
+BaseComment.prototype.configureCommentsVisibility = function(nodeId) {
     var self = this;
     for (var c in self.comments()) {
         var comment = self.comments()[c];
@@ -220,11 +217,11 @@ BaseComment.prototype.configureCommentsVisibility = function() {
             comment.loading(false);
             continue;
         }
-        comment.checkFileExistsAndConfigure();
+        comment.checkFileExistsAndConfigure(nodeId);
     }
 };
 
-BaseComment.prototype.checkFileExistsAndConfigure = function() {
+BaseComment.prototype.checkFileExistsAndConfigure = function(nodeId) {
     var self = this;
     var url  = waterbutler.buildMetadataUrl(self.title(), self.provider(), nodeId, {}); // waterbutler url
     var request = $.ajax({
@@ -264,6 +261,7 @@ BaseComment.prototype.decrementUserFromDiscussion = function(discussions) {
 
 BaseComment.prototype.submitReply = function() {
     var self = this;
+    var nodeUrl = '/' + self.$root.nodeId() + '/';
     if (!self.replyContent()) {
         self.replyErrorMessage('Please enter a comment');
         return;
@@ -275,7 +273,7 @@ BaseComment.prototype.submitReply = function() {
 
     self.submittingReply(true);
     osfHelpers.postJSON(
-        nodeApiUrl + 'comment/',
+        self.$root.nodeApiUrl + 'comment/',
         {
             page: self.page(),
             target: self.id(),
@@ -430,6 +428,8 @@ var CommentModel = function(data, $parent, $root) {
         return decodeURIComponent(cleaned);
     });
 
+    self.nodeUrl = '/' + self.$root.nodeId() + '/';
+
     self.rootUrl = ko.pureComputed(function(){
         var url = 'discussions';
         if (self.page() === 'node') {
@@ -442,16 +442,16 @@ var CommentModel = function(data, $parent, $root) {
 
     self.parentUrl = ko.pureComputed(function(){
         if (self.targetId() === self.rootId()) {
-            return nodeUrl + self.rootUrl();
+            return self.nodeUrl + self.rootUrl();
         }
         return '/' + self.targetId();
     });
 
     self.targetUrl = ko.pureComputed(function(){
         if (self.page() === 'node') {
-            return nodeUrl;
+            return self.nodeUrl;
         } else if (self.page() === 'wiki') {
-            return nodeUrl + self.page() + '/' + self.rootId();
+            return self.nodeUrl + self.page() + '/' + self.rootId();
         } else if (self.page() === 'files') {
             return '/' + self.rootId() + '/';
         }
@@ -498,7 +498,7 @@ CommentModel.prototype.submitEdit = function(data, event) {
         return;
     }
     osfHelpers.putJSON(
-        nodeApiUrl + 'comment/' + self.id() + '/',
+        self.$root.nodeApiUrl + 'comment/' + self.id() + '/',
         {content: self.content()}
     ).done(function(response) {
         self.content(response.content);
@@ -528,7 +528,7 @@ CommentModel.prototype.cancelAbuse = function() {
 CommentModel.prototype.submitAbuse = function() {
     var self = this;
     osfHelpers.postJSON(
-        nodeApiUrl + 'comment/' + self.id() + '/report/',
+        self.$root.nodeApiUrl + 'comment/' + self.id() + '/report/',
         {
             category: self.abuseCategory(),
             text: self.abuseText()
@@ -548,7 +548,7 @@ CommentModel.prototype.submitDelete = function() {
     var self = this;
     $.ajax({
         type: 'DELETE',
-        url: nodeApiUrl + 'comment/' + self.id() + '/',
+        url: self.$root.nodeApiUrl + 'comment/' + self.id() + '/',
     }).done(function() {
         self.isDeleted(true);
         self.deleting(false);
@@ -568,7 +568,7 @@ CommentModel.prototype.startUndelete = function() {
 CommentModel.prototype.submitUndelete = function() {
     var self = this;
     osfHelpers.putJSON(
-        nodeApiUrl + 'comment/' + self.id() + '/undelete/',
+        self.$root.nodeApiUrl + 'comment/' + self.id() + '/undelete/',
         {}
     ).done(function() {
         self.isDeleted(false);
@@ -588,7 +588,7 @@ CommentModel.prototype.startUnreportAbuse = function() {
 CommentModel.prototype.submitUnreportAbuse = function() {
     var self = this;
     osfHelpers.postJSON(
-        nodeApiUrl + 'comment/' + self.id() + '/unreport/',
+        self.$root.nodeApiUrl + 'comment/' + self.id() + '/unreport/',
         {}
     ).done(function() {
         self.isAbuse(false);
@@ -651,6 +651,8 @@ var CommentListModel = function(options) {
     self.page(options.hostPage);
     self.id = ko.observable(options.hostName);
     self.rootId = ko.observable(options.hostName);
+    self.nodeId = ko.observable(options.nodeId);
+    self.nodeApiUrl = options.nodeApiUrl;
 
     self.commented = ko.pureComputed(function(){
         return self.comments().length > 0;
@@ -683,7 +685,7 @@ var CommentListModel = function(options) {
         return comments;
     });
 
-    self.fetch(true, options.thread);
+    self.fetch(true, options.nodeId, options.thread);
 
 };
 
@@ -709,8 +711,8 @@ CommentListModel.prototype.initListeners = function() {
     });
 };
 
-var timestampUrl = nodeApiUrl + 'comments/timestamps/';
-var onOpen = function(hostPage, hostName) {
+var onOpen = function(hostPage, hostName, nodeApiUrl) {
+    var timestampUrl = nodeApiUrl + 'comments/timestamps/';
     var request = osfHelpers.putJSON(
         timestampUrl,
         {
@@ -720,7 +722,7 @@ var onOpen = function(hostPage, hostName) {
     );    
     request.fail(function(xhr, textStatus, errorThrown) {
         Raven.captureMessage('Could not update comment timestamp', {
-            url: window.contextVars.node.urls.api + 'comments/timestamps/',
+            url: nodeApiUrl + 'comments/timestamps/',
             textStatus: textStatus,
             errorThrown: errorThrown
         });
@@ -729,6 +731,8 @@ var onOpen = function(hostPage, hostName) {
 };
 
 /* options example: {
+ *      nodeId: Node._id,
+ *      nodeApiUrl: Node.api_url,
  *      hostPage: 'node',
  *      hostName: Node._id,
  *      mode: 'page',
@@ -738,7 +742,7 @@ var onOpen = function(hostPage, hostName) {
  *      thread_id: undefined }
  */
 var init = function(selector, options) {
-    new CommentPane(selector, options.mode, {onOpen: function(){return onOpen(options.hostPage, options.hostName)}});
+    new CommentPane(selector, options.mode, {onOpen: function(){return onOpen(options.hostPage, options.hostName, options.nodeApiUrl)}});
     var viewModel = new CommentListModel(options);
     var $elm = $(selector);
     if (!$elm.length) {
