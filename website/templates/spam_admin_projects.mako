@@ -19,12 +19,7 @@
         <li class="active"><a href="/spam_admin/projects">Projects <span class="sr-only">(current)</span></a></li>
 
       </ul>
-      <form class="navbar-form navbar-right" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search Projects">
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-      </form>
+
 
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
@@ -57,6 +52,37 @@
                       </div>
                     </div>
                 </div>
+
+
+                <div data-bind="foreach: {data: project.tags, as: 'tag'}">
+
+                 <span class="label label-success" data-bind="text: $data">Default</span>
+
+                </div>
+
+
+                <div class="panel panel-default">
+                  <!-- Default panel contents -->
+                  <div class="panel-heading">Components</div>
+
+                  <!-- List group -->
+                  <ul class="list-group">
+                      <!-- ko foreach: project.components -->
+                        <li class="list-group-item">
+                            <a data-bind="attr: {href: url}">
+                                <span data-bind="text: title"></span>
+                            </a>
+
+                            <span class="pull-right" data-bind="text: date_modified"></span>
+                        </li>
+                    <!-- /ko -->
+
+                  </ul>
+                </div>
+
+
+
+
 
 
 

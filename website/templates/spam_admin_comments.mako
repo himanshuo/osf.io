@@ -23,17 +23,12 @@
                         <a href="/spam_admin/projects">Projects</a>
                     </li>
                 </ul>
-                <form class="navbar-form navbar-right" role="search">
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Search Comments">
-                        </div>
-                        <button type="submit" class="btn btn-default">Submit</button>
-                    </form>
-                </div>
                 <!-- /.navbar-collapse -->
             </div>
             <!-- /.container-fluid -->
+            </div>
         </nav>
+
         <div  data-bind="foreach: {data: spamAdminComments, as: 'comment'}">
             <div class="search-result well">
                 <div class=" pull-right"  role="group" aria-label="...">

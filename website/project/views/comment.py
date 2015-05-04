@@ -22,7 +22,7 @@ from website.project.model import has_anonymous_link
 from website.project.views.node import _view_project, n_unread_comments
 from website.addons.figshare.exceptions import FigshareIsDraftError
 from website.profile.utils import serialize_user
-
+from website.spam_admin.utils import is_spam
 
 
 @must_be_contributor_or_public
@@ -82,7 +82,7 @@ def resolve_target(node, page, guid):
 def update_discussion(target, comments_dict):
     if not getattr(target, 'commented', None) is None:
         for comment in getattr(target, 'commented', []):
-            if not (comment.is_deleted or comment.is_hidden):
+            if not (comment.is_deleted or comment.is_hidden) and comment.is_not_spam():
                 comments_dict[comment.user].append(comment)
             update_discussion(comment, comments_dict=comments_dict)
     return comments_dict
@@ -92,7 +92,8 @@ def comment_discussion(comments, node, anonymous=False, widget=False):
 
     comments_dict = collections.defaultdict(list)
     for comment in comments:
-        if not (comment.is_deleted or comment.is_hidden):
+
+        if not (comment.is_deleted or comment.is_hidden) and comment.is_not_spam():
             comments_dict[comment.user].append(comment)
         if not widget:
             update_discussion(comment, comments_dict=comments_dict)
@@ -115,6 +116,7 @@ def comment_discussion(comments, node, anonymous=False, widget=False):
         key=get_recency,
         reverse=True,
     )
+
 
     return {
         'discussionByFrequency': [
@@ -206,6 +208,10 @@ def add_comment(**kwargs):
         content=content,
     )
     comment.save()
+
+    if is_spam(comment):
+        comment.mark_as_possible_spam(save=True)
+
 
     context = dict(
         gravatar_url=auth.user.gravatar_url,
@@ -377,6 +383,9 @@ def edit_comment(**kwargs):
         auth=auth,
         save=True
     )
+
+    if is_spam(comment):
+        comment.mark_as_possible_spam( save=True)
 
     return serialize_comment(comment, auth)
 

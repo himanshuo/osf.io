@@ -1,5 +1,5 @@
 /**
- * Renders a log feed.
+ * Renders a project feed.
  **/
 'use strict';
 
@@ -9,7 +9,7 @@ var $osf = require('js/osfHelpers');
 
 
 /**
-* Log model.
+* project model.
 */
 var SpamAdminProject = function(data) {
     var self = this;
@@ -24,7 +24,7 @@ var SpamAdminProject = function(data) {
     self.url=ko.observable(data.url);
     self.wikis=ko.observableArray(data.wikis);
     self.tags=ko.observableArray(data.tags);
-
+    self.components=ko.observableArray(data.components);
 
 
 };
@@ -57,8 +57,8 @@ SpamAdminProject.prototype.markHam = function(){
 
 
 /**
-* View model for a log list.
-* @param {Log[]} logs An array of Log model objects to render.
+* View model for a project list.
+* @param {project[]} projects An array of project model objects to render.
 */
 var SpamAdminProjectViewModel = function(spamAdminProjects) {
 
@@ -110,25 +110,13 @@ SpamAdminProjectViewModel.prototype.markSpam = function(spamAdminProject){
 
 
 };
-//Array.prototype.remove = function(elementToDelete){
-//    var sels;
-//    var i = self.indexOf(elementToDelete)
-//    if(i>-1){
-//        self.splice(i, 1);
-//        return true;
-//    }
-//    return false;
-//}
+
 
 
 
 SpamAdminProjectViewModel.prototype.fill_project_list = function(){
   var self = this;
-     self.get_projects(30);
-//  var amount = 30-self.spamAdminProjects.length
-//  if(amount>0){
-//
-//  }
+  self.get_projects(30);
 };
 
 SpamAdminProjectViewModel.prototype.get_projects = function(amount) {
@@ -138,7 +126,7 @@ SpamAdminProjectViewModel.prototype.get_projects = function(amount) {
 
     var request = self.fetch(amount);
     request.done(function(response) {
-
+        console.log(response);
         var newProjects = response.projects.map(function(data){
 
             return new SpamAdminProject(data);
@@ -206,7 +194,7 @@ function SpamAdminProjectFeed(selector, options) {
 SpamAdminProjectFeed.prototype.init = function() {
 
     var self = this;
-    //self.$progBar.hide();
+
 
     $osf.applyBindings(new SpamAdminProjectViewModel(self.spamAdminProjects), self.selector);
 

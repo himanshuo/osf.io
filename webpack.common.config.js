@@ -51,6 +51,7 @@ var entry = {
     'share-embed-page': staticPath('js/pages/share-embed-page.js'),
     'spam-admin-comment-page': staticPath('js/pages/spam-admin-comment-page.js'),
     'spam-admin-project-page': staticPath('js/pages/spam-admin-project-page.js'),
+
     // Commons chunk
     'vendor': [
         // Vendor libraries

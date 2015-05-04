@@ -87,15 +87,7 @@ function setPermissions(permissions, nodeType) {
             message: message,
             callback: function(result) {
                 if (result) {
-                    console.log(result);
-//                    osfHelpers.postJSON(
-//                        URLS[urlKey],
-//                        {permissions: permissions}
-//                    ).done(function() {
-//                        window.location.reload();
-//                    }).fail(
-//                        osfHelpers.handleJSONError
-//                    );
+                    console.log(result);//don't do jack.
                 }
             }
         });

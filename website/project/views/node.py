@@ -39,7 +39,7 @@ from website.profile import utils
 from website.project import new_folder
 from website.util.sanitize import strip_html
 from datetime import datetime
-
+from website.spam_admin.utils import _project_is_spam
 logger = logging.getLogger(__name__)
 
 
@@ -484,13 +484,21 @@ def project_statistics(**kwargs):
 def project_before_set_public(**kwargs):
     node = kwargs['node'] or kwargs['project']
     prompt = node.callback('before_make_public')
-    anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
-    if anonymous_link_warning:
-        prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
-                      'contributors after a project or component is made public.')
+
+
+    if not node.spam_status==node.HAM and _project_is_spam(node):
+        node.mark_as_possible_spam(auth=None, save=True)
+        is_spam=True
+    else:
+        is_spam=False
+        anonymous_link_warning = any(private_link.anonymous for private_link in node.private_links_active)
+        if anonymous_link_warning:
+            prompt.append('Anonymized view-only links <b>DO NOT</b> anonymize '
+                          'contributors after a project or component is made public.')
 
     return {
-        'prompts': prompt
+        'prompts': prompt,
+        'is_spam':is_spam
     }
 
 

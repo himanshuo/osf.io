@@ -108,25 +108,14 @@ SpamAdminCommentViewModel.prototype.markSpam = function(spamAdminComment){
 
 
 };
-//Array.prototype.remove = function(elementToDelete){
-//    var sels;
-//    var i = self.indexOf(elementToDelete)
-//    if(i>-1){
-//        self.splice(i, 1);
-//        return true;
-//    }
-//    return false;
-//}
+
 
 
 
 SpamAdminCommentViewModel.prototype.fill_comment_list = function(){
   var self = this;
   self.get_comments(90);
-//  var amount = 90-self.spamAdminComments.length;
-//  if(amount>0){
-//      self.get_comments(amount);
-//  }
+
 
 };
 
@@ -142,10 +131,9 @@ SpamAdminCommentViewModel.prototype.get_comments = function(amount) {
             return new SpamAdminComment(data);
         });
 
-
-        self.spamAdminComments.removeAll();
         //it is better to extend an array at once rather then manually add multiple times because each addition
-        //forces knockout to reload. DO THAT. apply is just pushing foreach new comment. SLOW. FIX. TODO: make fast.
+        //forces knockout to reload. DO THAT. apply is just pushing foreach new comment.
+        self.spamAdminComments.removeAll();
         self.spamAdminComments.push.apply(self.spamAdminComments, newComments);
 
 
@@ -199,13 +187,7 @@ function SpamAdminCommentFeed(selector, options) {
 
 
 
-/*
 
-I THINK THIS IS CALLED WHEN A NEW SpamAdminCommentFeed is created. I think the one that is already there doesnt count?
-ONLINE, it shows that this method is called inside the SpamAdminCommentFeed prototype definition using:
-     this.init.apply(this, arguments);
-
-*/
 //// Apply ViewModel bindings
 SpamAdminCommentFeed.prototype.init = function() {
 
