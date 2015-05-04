@@ -5,6 +5,7 @@ from datetime import datetime
 import requests
 import json
 from website import settings
+from .spam_admin_settings import SPAM_ASSASSIN_URL, SPAM_ASSASSIN_TEACHING_URL
 
 
 ###################################### GENERAL  ########################################################
@@ -47,6 +48,8 @@ def serialize_comments(comments, amount):
 
 
 def train_spam(comment, is_spam):
+    """ serialize and send request to spam assassin
+    """
     try:
         data = {
             'message': comment.content,
@@ -57,7 +60,7 @@ def train_spam(comment, is_spam):
             'is_spam':is_spam
         }
 
-        resp = requests.post('http://localhost:8000/teach', data=json.dumps(data))
+        resp = requests.post(SPAM_ASSASSIN_TEACHING_URL, data=json.dumps(data))
         if resp.text == "Learned":
             return True
     except:
@@ -79,7 +82,7 @@ def is_spam(comment):
         }
 
 
-        resp = requests.post('http://localhost:8000', data=json.dumps(data))
+        resp = requests.post(SPAM_ASSASSIN_URL, data=json.dumps(data))
         if resp.text == "SPAM":
             return True
 
@@ -191,7 +194,7 @@ def _project_is_spam(node):
 
 
 
-        res = requests.post('http://localhost:8000', data=json.dumps(data))
+        res = requests.post(SPAM_ASSASSIN_URL, data=json.dumps(data))
 
         if res.text == "SPAM":
 
@@ -206,7 +209,7 @@ def train_spam_project(project, is_spam):
         serialized_project = _format_spam_node_data(project)
         serialized_project['is_spam']=is_spam
 
-        r = requests.post('http://localhost:8000/teach', data=json.dumps(serialized_project))
+        r = requests.post(SPAM_ASSASSIN_TEACHING_URL, data=json.dumps(serialized_project))
         if r.text == "Learned":
             return True
         return False
