@@ -11,7 +11,7 @@ from tests.base import (
     assert_datetime_equal,
 )
 from tests.factories import (
-    ProjectFactory, AuthUserFactory,SpamAdminFactory
+    ProjectFactory, AuthUserFactory
 
 )
 from website.spam_admin.spam_admin_settings import SPAM_ASSASSIN_URL
@@ -87,151 +87,151 @@ class TestCommentSpamAdmin(OsfTestCase):
 
 
     ########################## TEST MODEL / UTIL FUNCTIONS  #####################################################
-    # @httpretty.activate
-    # def test_comment_added_is_spam(self):
-    #     comment = self._add_comment(
-    #         self.project, content = self.GTUBE, auth=self.project.creator.auth,
-    #     )
-    #     self.project.reload()
-    #
-    #
-    #
-    #     assert_equal(len(self.project.commented), 1)
-    #     if self.spam_assassin_active:
-    #         assert_equal(comment.spam_status , Comment.POSSIBLE_SPAM)
-    #     else:
-    #         assert_equal(comment.spam_status , Comment.UNKNOWN)
-    # @httpretty.activate
-    # def test_comment_added_is_not_spam(self):
-    #     comment = self._add_comment(
-    #         self.project,auth=self.project.creator.auth,
-    #     )
-    #     self.project.reload()
-    #
-    #
-    #
-    #     assert_equal(len(self.project.commented), 1)
-    #     assert_equal(comment.spam_status , Comment.UNKNOWN)
-    # @httpretty.activate
-    # def test_train_spam_comment(self):
-    #     comment = self._add_comment(
-    #         self.project,content=self.GTUBE, auth=self.project.creator.auth,
-    #     )
-    #     self.project.reload()
-    #
-    #
-    #     if self.spam_assassin_active:
-    #         assert_true(train_spam(comment, is_spam=True))
-    #     else:
-    #         assert_false(train_spam(comment, is_spam=True))
-    # @httpretty.activate
-    # def test_train_ham_comment(self):
-    #     comment = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #     if self.spam_assassin_active:
-    #         assert_true(train_spam(comment, is_spam=False))
-    #     else:
-    #         assert_false(train_spam(comment, is_spam=False))
-    #
-    # @httpretty.activate
-    # def test_auto_mark_spam_if_flagged_enough_times(self):
-    #     comment = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #
-    #
-    #     for i in range(Comment.NUM_FLAGS_FOR_SPAM):
-    #         reporter = AuthUserFactory()
-    #         url = self.project.api_url + 'comment/{0}/report/'.format(comment._id)
-    #         self.app.post_json(
-    #             url,
-    #             {
-    #                 'category': 'spam',
-    #                 'text': 'ads',
-    #             },
-    #             auth=reporter.auth,
-    #         )
-    #
-    #     comment.reload()
-    #     if self.spam_assassin_active:
-    #         assert_equal(comment.spam_status , Comment.POSSIBLE_SPAM)
-    #     else:
-    #         assert_equal(comment.spam_status , Comment.UNKNOWN)
-    # @httpretty.activate
-    # def test_dont_auto_mark_spam_if_not_flagged_enough_times(self):
-    #     comment = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #
-    #
-    #     for i in range(Comment.NUM_FLAGS_FOR_SPAM-1):
-    #         reporter = AuthUserFactory()
-    #         url = self.project.api_url + 'comment/{0}/report/'.format(comment._id)
-    #         with assert_raises(ValueError):
-    #             self.app.post_json(
-    #                 url,
-    #                 {
-    #                     'category': 'spam',
-    #                     'text': 'ads',
-    #                 },
-    #                 auth=reporter.auth,
-    #             )
-    #
-    #     comment.reload()
-    #     assert_equal(comment.spam_status , Comment.UNKNOWN)
-    #
-    # @httpretty.activate
-    # def test_dont_auto_mark_if_already_ham(self):
-    #     comment_ham = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #     comment_ham.confirm_ham(save=True)
-    #
-    #
-    #     for i in range(Comment.NUM_FLAGS_FOR_SPAM):
-    #         reporter = AuthUserFactory()
-    #         comment_ham.report_abuse(reporter, category='spam', text='ads',save=True)
-    #
-    #     assert_equal(comment_ham.spam_status , Comment.HAM)
-    #
-    # @httpretty.activate
-    # def test_dont_auto_mark_if_already_spam(self):
-    #     comment_spam = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #     comment_spam.confirm_ham(save=True)
-    #
-    #     with assert_raises(ValueError):
-    #         for i in range(Comment.NUM_FLAGS_FOR_SPAM):
-    #             reporter = AuthUserFactory()
-    #             comment_spam.unreport_abuse(reporter, save=True)
-    #
-    #     assert_equal(comment_spam.spam_status , Comment.HAM)
-    #
+    @httpretty.activate
+    def test_comment_added_is_spam(self):
+        comment = self._add_comment(
+            self.project, content = self.GTUBE, auth=self.project.creator.auth,
+        )
+        self.project.reload()
+
+
+
+        assert_equal(len(self.project.commented), 1)
+        if self.spam_assassin_active:
+            assert_equal(comment.spam_status , Comment.POSSIBLE_SPAM)
+        else:
+            assert_equal(comment.spam_status , Comment.UNKNOWN)
+    @httpretty.activate
+    def test_comment_added_is_not_spam(self):
+        comment = self._add_comment(
+            self.project,auth=self.project.creator.auth,
+        )
+        self.project.reload()
+
+
+
+        assert_equal(len(self.project.commented), 1)
+        assert_equal(comment.spam_status , Comment.UNKNOWN)
+    @httpretty.activate
+    def test_train_spam_comment(self):
+        comment = self._add_comment(
+            self.project,content=self.GTUBE, auth=self.project.creator.auth,
+        )
+        self.project.reload()
+
+
+        if self.spam_assassin_active:
+            assert_true(train_spam(comment, is_spam=True))
+        else:
+            assert_false(train_spam(comment, is_spam=True))
+    @httpretty.activate
+    def test_train_ham_comment(self):
+        comment = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+        if self.spam_assassin_active:
+            assert_true(train_spam(comment, is_spam=False))
+        else:
+            assert_false(train_spam(comment, is_spam=False))
+
+    @httpretty.activate
+    def test_auto_mark_spam_if_flagged_enough_times(self):
+        comment = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+
+
+        for i in range(Comment.NUM_FLAGS_FOR_SPAM):
+            reporter = AuthUserFactory()
+            url = self.project.api_url + 'comment/{0}/report/'.format(comment._id)
+            self.app.post_json(
+                url,
+                {
+                    'category': 'spam',
+                    'text': 'ads',
+                },
+                auth=reporter.auth,
+            )
+
+        comment.reload()
+        if self.spam_assassin_active:
+            assert_equal(comment.spam_status , Comment.POSSIBLE_SPAM)
+        else:
+            assert_equal(comment.spam_status , Comment.UNKNOWN)
+    @httpretty.activate
+    def test_dont_auto_mark_spam_if_not_flagged_enough_times(self):
+        comment = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+
+
+        for i in range(Comment.NUM_FLAGS_FOR_SPAM-1):
+            reporter = AuthUserFactory()
+            url = self.project.api_url + 'comment/{0}/report/'.format(comment._id)
+            with assert_raises(ValueError):
+                self.app.post_json(
+                    url,
+                    {
+                        'category': 'spam',
+                        'text': 'ads',
+                    },
+                    auth=reporter.auth,
+                )
+
+        comment.reload()
+        assert_equal(comment.spam_status , Comment.UNKNOWN)
+
+    @httpretty.activate
+    def test_dont_auto_mark_if_already_ham(self):
+        comment_ham = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+        comment_ham.confirm_ham(save=True)
+
+
+        for i in range(Comment.NUM_FLAGS_FOR_SPAM):
+            reporter = AuthUserFactory()
+            comment_ham.report_abuse(reporter, category='spam', text='ads',save=True)
+
+        assert_equal(comment_ham.spam_status , Comment.HAM)
+
+    @httpretty.activate
+    def test_dont_auto_mark_if_already_spam(self):
+        comment_spam = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+        comment_spam.confirm_ham(save=True)
+
+        with assert_raises(ValueError):
+            for i in range(Comment.NUM_FLAGS_FOR_SPAM):
+                reporter = AuthUserFactory()
+                comment_spam.unreport_abuse(reporter, save=True)
+
+        assert_equal(comment_spam.spam_status , Comment.HAM)
+
 
 
     ###############################  TEST VIEW   #############################################
-    @httpretty.activate
-    def test_delete_if_marked_as_spam(self):
-
-
-        comment = self._add_comment(
-            self.project, auth=self.user.auth,
-        )
-
-
-        self.app.post_json(
-            '/api/v1/spam_admin/mark_comment_as_spam/',
-            {
-                'auth':self.spam_admin.auth,
-                'cid':comment._id
-            },
-        )
-
-        # mark_comment_as_spam(auth=self.project.creator.auth, cid=comment._id )
-
-        assert_equal(comment.spam_status , Comment.SPAM)
+    # @httpretty.activate
+    # def test_delete_if_marked_as_spam(self):
+    #
+    #
+    #     comment = self._add_comment(
+    #         self.project, auth=self.user.auth,
+    #     )
+    #
+    #
+    #     self.app.post_json(
+    #         '/api/v1/spam_admin/mark_comment_as_spam/',
+    #         {
+    #             'auth':self.spam_admin.auth,
+    #             'cid':comment._id
+    #         },
+    #     )
+    #
+    #     # mark_comment_as_spam(auth=self.project.creator.auth, cid=comment._id )
+    #
+    #     assert_equal(comment.spam_status , Comment.SPAM)
 
 
     # def test_delete_if_marked_as_spam(self):

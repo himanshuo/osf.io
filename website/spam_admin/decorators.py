@@ -8,8 +8,7 @@ def must_be_spam_admin(func):
     """
     @functools.wraps(func)
     def wrapped(*args, **kwargs):
-        print('being callllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllled')
-        print(kwargs)
+
 
         kwargs['auth'] = Auth.from_kwargs(request.args.to_dict(), kwargs)
         if kwargs['auth'].user.spam_admin=="spam_admin" and kwargs['auth'].user.emails[0]=="spam_admin@cos.com" :
