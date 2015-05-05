@@ -363,7 +363,8 @@ class Comment(GuidStoredObject):
             self.reports.pop(user._id)
 
             if self.reports[user.id]['category'] == 'spam':
-                self.spam_flagged_count = self.spam_flagged_count - 1
+                if self.spam_flagged_count >0:
+                    self.spam_flagged_count = self.spam_flagged_count - 1
 
                 if self.spam_flagged_count < Comment.NUM_FLAGS_FOR_SPAM:
                     self.unmark_as_possible_spam( save=save)

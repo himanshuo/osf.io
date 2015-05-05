@@ -178,6 +178,7 @@ def kwargs_to_comment(kwargs, owner=False):
 @must_be_logged_in
 @must_be_contributor_or_public
 def add_comment(**kwargs):
+
     auth = kwargs['auth']
     node = kwargs['node'] or kwargs['project']
 

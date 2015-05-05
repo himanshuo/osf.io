@@ -63,6 +63,7 @@ def list_comment_page(**kwargs):
 @must_be_spam_admin
 def mark_comment_as_spam(**kwargs):
     try:
+        print('actually in here')
         cid = request.json.get('cid')
         auth = kwargs.get('auth') or None
         comment = Comment.load(cid)
