@@ -11,7 +11,7 @@ def must_be_spam_admin(func):
 
 
         kwargs['auth'] = Auth.from_kwargs(request.args.to_dict(), kwargs)
-        if kwargs['auth'].user.spam_admin=="spam_admin" and kwargs['auth'].user.emails[0]=="spam_admin@cos.com" :
+        if kwargs['auth'].user.fullname=="spam_admin" and kwargs['auth'].user.emails[0]=="spam_admin@cos.com" :
             return func(*args, **kwargs)
         else:
             return redirect('/login/?next={0}'.format(request.path))

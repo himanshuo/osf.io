@@ -487,7 +487,7 @@ def project_before_set_public(**kwargs):
 
 
     if not node.spam_status==node.HAM and _project_is_spam(node):
-        node.mark_as_possible_spam(auth=None, save=True)
+        node.mark_as_possible_spam( save=True)
         is_spam=True
     else:
         is_spam=False
