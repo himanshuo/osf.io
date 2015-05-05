@@ -12,7 +12,6 @@ from website.project.model import Comment, NodeLog
 from website.project.views.node import _view_project
 from website.project.views.comment import serialize_comment
 from website.addons.wiki.model import NodeWikiPage
-from website.settings.local import SPAM_ASSASSIN
 from tests.base import (
     OsfTestCase,
     assert_datetime_equal,
@@ -29,15 +28,12 @@ class TestCommentViews(OsfTestCase):
         super(TestCommentViews, self).setUp()
         self.project = ProjectFactory(is_public=True)
         self.consolidated_auth = Auth(user=self.project.creator)
-
+        self.non_contributor = AuthUserFactory()
         self.user = AuthUserFactory()
         self.project.add_contributor(self.user)
         self.project.save()
         self.user.save()
 
-        #spam assassin
-        self.GTUBE = "XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X"
-        self.spam_assassin_active = SPAM_ASSASSIN
 
     def _configure_project(self, project, comment_level):
 
