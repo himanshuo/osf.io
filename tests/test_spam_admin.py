@@ -37,7 +37,7 @@ class TestCommentSpamAdmin(OsfTestCase):
         self.user.save()
         self.project.add_contributor(self.user)
         self.project.save()
-        self.spam_admin = SpamAdminFactory()
+
 
 
         #spam assassin
