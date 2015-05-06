@@ -42,9 +42,9 @@ def list_comment_page(**kwargs):
     """
     try:
         amount = 30
+
         if 'amount' in kwargs:
-            amount *=0
-            amount += int(kwargs['amount'])
+            amount = int(kwargs['amount'])
 
         comments = Comment.find(
             Q('spam_status', 'eq', Comment.POSSIBLE_SPAM)
@@ -63,7 +63,7 @@ def list_comment_page(**kwargs):
 @must_be_spam_admin
 def mark_comment_as_spam(**kwargs):
     try:
-        print('actually in here')
+
         cid = request.json.get('cid')
         auth = kwargs.get('auth') or None
         comment = Comment.load(cid)

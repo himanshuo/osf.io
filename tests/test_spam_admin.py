@@ -16,10 +16,9 @@ from tests.factories import (
 )
 from website.spam_admin.spam_admin_settings import SPAM_ASSASSIN_URL
 import httpretty
-from website.spam_admin.utils import train_spam
-from website.spam_admin.views import mark_comment_as_spam, mark_comment_as_ham
-
-
+from website.spam_admin.utils import train_spam, _project_is_spam
+from website.project.model import Node
+from website.project.views.node import project_before_set_public
 
 
 
@@ -29,13 +28,6 @@ class TestCommentSpamAdmin(OsfTestCase):
     def setUp(self):
         super(TestCommentSpamAdmin, self).setUp()
         self.project = ProjectFactory(is_public=True)
-        self.consolidated_auth = Auth(user=self.project.creator)
-        self.non_contributor = AuthUserFactory()
-        self.user = AuthUserFactory()
-        # self.user.emails[0] = 'spam_admin@cos.com'
-        # self.user.fullname = 'spam_admin'
-        self.user.save()
-        self.project.add_contributor(self.user)
         self.project.save()
 
 
@@ -43,7 +35,7 @@ class TestCommentSpamAdmin(OsfTestCase):
         #spam assassin
         self.GTUBE = "SPAM"
         self.spam_assassin_active = SPAM_ASSASSIN
-
+        self.spam_admin = AuthUserFactory(spam_admin=True)
 
 
 
@@ -58,9 +50,7 @@ class TestCommentSpamAdmin(OsfTestCase):
     def _add_comment(self, project, content=None, **kwargs):
 
         def request_callback(request, uri, headers):
-            import json
-            data = json.loads(str(request.body))
-            if data.get('message') == self.GTUBE:
+            if self.GTUBE in request.body:
                 return (200, headers, "SPAM")
             return (200, headers, "HAM")
 
@@ -87,6 +77,8 @@ class TestCommentSpamAdmin(OsfTestCase):
 
 
     ########################## TEST MODEL / UTIL FUNCTIONS  #####################################################
+
+
     @httpretty.activate
     def test_comment_added_is_spam(self):
         comment = self._add_comment(
@@ -210,60 +202,172 @@ class TestCommentSpamAdmin(OsfTestCase):
         assert_equal(comment_spam.spam_status , Comment.HAM)
 
 
-
     ###############################  TEST VIEW   #############################################
-    # @httpretty.activate
-    # def test_delete_if_marked_as_spam(self):
-    #
-    #
-    #     comment = self._add_comment(
-    #         self.project, auth=self.user.auth,
-    #     )
-    #
-    #
-    #     self.app.post_json(
-    #         '/api/v1/spam_admin/mark_comment_as_spam/',
-    #         {
-    #             'auth':self.spam_admin.auth,
-    #             'cid':comment._id
-    #         },
-    #     )
-    #
-    #     # mark_comment_as_spam(auth=self.project.creator.auth, cid=comment._id )
-    #
-    #     assert_equal(comment.spam_status , Comment.SPAM)
+    @httpretty.activate
+    def test_delete_if_marked_as_spam(self):
 
 
-    # def test_delete_if_marked_as_spam(self):
-    #     comment = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #     mark_comment_as_spam(auth=self.project.creator.auth, cid=comment._id )
-    #
-    #     assert_equal(comment.spam_status , Comment.SPAM)
-    #     assert_true(comment.is_deleted)
-    #
-    #
-    # def test_marked_as_ham(self):
-    #     comment = self._add_comment(
-    #         self.project, auth=self.project.creator.auth,
-    #     )
-    #     mark_comment_as_ham(auth=self.project.creator.auth, cid=comment._id )
-    #     assert_equal(comment.spam_status , Comment.HAM)
-    #     assert_false(comment.is_deleted)
-    #
-    # # def test_list_possible_spam_comments(self):
-    # #     for i in range(5):
-    # #         self._add_comment(
-    # #             self.project, content=self.GTUBE,auth=self.project.creator.auth,
-    # #         )
-    # #         self._add_comment(
-    # #             self.project, auth=self.project.creator.auth,
-    # #         )
-    # #
-    # #     list_comment_page(
-    # #
-    # #     )
-    # #     assert_equal(comment.spam_status == Comment.HAM)
-    # #     assert_false(comment.is_deleted)
+        comment = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+        comment.mark_as_possible_spam()
+
+
+        self.app.post_json(
+            '/api/v1/spam_admin/mark_comment_as_spam/',
+            {
+                'cid':comment._id
+            },
+            auth=self.spam_admin.auth
+        )
+        comment.reload()
+
+        assert_equal(comment.spam_status , Comment.SPAM)
+        assert_true(comment.is_deleted)
+
+
+    def test_marked_as_ham(self):
+        comment = self._add_comment(
+            self.project, auth=self.project.creator.auth,
+        )
+        comment.mark_as_possible_spam()
+        self.app.post_json(
+            '/api/v1/spam_admin/mark_comment_as_ham/',
+            {
+                'cid':comment._id
+            },
+            auth=self.spam_admin.auth
+        )
+        comment.reload()
+        assert_equal(comment.spam_status , Comment.HAM)
+        assert_false(comment.is_deleted)
+
+    @httpretty.activate
+    def test_list_possible_spam_comments(self):
+        for i in range(5):
+            self._add_comment(
+                self.project, content=self.GTUBE,auth=self.project.creator.auth,
+            )
+            self._add_comment(
+                self.project, auth=self.project.creator.auth,
+            )
+
+        ret=self.app.get(
+            '/api/v1/spam_admin/list_comments/3/',
+            auth=self.spam_admin.auth
+        )
+
+
+        assert_equal(len(ret.json['comments']),3)
+        assert_true(ret.json['total']>=5)
+
+    def test_list_spam_comments_request_is_too_big(self):
+        for i in range(5):
+            self._add_comment(
+                self.project, content=self.GTUBE,auth=self.project.creator.auth,
+            )
+            self._add_comment(
+                self.project, auth=self.project.creator.auth,
+            )
+
+        ret=self.app.get(
+            '/api/v1/spam_admin/list_comments/9999/',
+            auth=self.spam_admin.auth
+        )
+
+        #todo: stop comments from earlier tests from saving
+        assert_true(len(ret.json['comments'])>=5)
+        assert_true(ret.json['total']>=5)
+
+
+
+
+#### Projects ##############
+class TestProjectSpamAdmin(OsfTestCase):
+
+
+    def setUp(self):
+        super(TestProjectSpamAdmin, self).setUp()
+        self.project = ProjectFactory(is_public=False)
+        self.project.save()
+        self.GTUBE = "SPAM"
+        self.spam_assassin_active = SPAM_ASSASSIN
+        self.spam_admin = AuthUserFactory(spam_admin=True)
+
+
+
+    def _spamify_project(self,project):
+
+        project.description = self.GTUBE
+        project.spam_status = Node.POSSIBLE_SPAM
+        project.save()
+
+        def request_callback(request, uri, headers):
+            if self.GTUBE in request.body:
+                return (200, headers, "SPAM")
+            return (200, headers, "HAM")
+
+        httpretty.register_uri(
+            httpretty.POST, SPAM_ASSASSIN_URL,
+            body=request_callback
+        )
+
+
+    @httpretty.activate
+    def test_project_is_spam(self):
+        self._spamify_project(self.project)
+        assert_true(_project_is_spam(self.project))
+
+        resp = project_before_set_public(
+            project=self.project,
+            user=self.project.creator
+            )
+
+        assert_true(resp.get('is_spam'))
+
+    @httpretty.activate
+    def test_project_is_ham(self):
+        assert_false(_project_is_spam(self.project))
+        resp = project_before_set_public(
+            project=self.project,
+            user=self.project.creator
+            )
+        assert_false(resp.get('is_spam'))
+
+
+    @httpretty.activate
+    def test_project_marked_as_spam(self):
+        #spammer puts spam materials into spam project
+        self._spamify_project(self.project)
+        assert_true(_project_is_spam(self.project))
+
+        #spammer tries to make spam project public
+        project_before_set_public(
+            project=self.project,
+            user=self.project.creator
+            )
+
+        #spam_admin sees spam_project
+        resp=self.app.get(
+            '/api/v1/spam_admin/list_projects/1/',
+            auth=self.spam_admin.auth
+        )
+        assert_equals(len(resp.json['projects']),1)
+        assert_true(resp.json['total']>=1)
+
+        #spam_admin marks project as spam
+        self.app.post_json(
+            '/api/v1/spam_admin/mark_project_as_spam/',
+            {
+                'pid':self.project._id
+            },
+            auth=self.spam_admin.auth
+        )
+
+        self.project.reload()
+
+        #project is SPAM
+        assert_equal(self.project.spam_status , Comment.SPAM)
+
+
 
